@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Tenant\Project;
 use App\Models\Tenant\ProjectDocument;
 use App\Traits\UniversalCrud;
-
+use Illuminate\Support\Facades\DB;
 class ProjectController extends Controller
 {
     use UniversalCrud;
@@ -18,90 +18,28 @@ class ProjectController extends Controller
 
     public function list()
     {
-       $query = Project::with(['completer','documents'])->latest();
+       $query = Project::with(['createdBy','documents'])->latest();
 
         return datatables()->of($query)
             ->addIndexColumn()
+            ->addColumn('created_by', function ($t) {
 
-
-            ->addColumn('documents', function ($t) {
-
-                if ($t->documents->isEmpty()) {
+                if (!$t->createdBy) {
                     return '-';
                 }
 
-                $html = '';
+                $user = $t->createdBy;
 
-                foreach ($t->documents as $doc) {
-
-                    $ext = strtolower(pathinfo($doc->file, PATHINFO_EXTENSION));
-
-                    $icon = match ($ext) {
-                        'pdf' =>  asset('assets/img/icons/pdf.png'),
-                        'doc', 'docx' =>  asset('assets/img/icons/word.png'),
-                        'xls', 'xlsx' =>  asset('assets/img/icons/excel.png'),
-                        'zip', 'rar' =>  asset('assets/img/icons/zip.png'),
-                        default => asset('assets/img/icons/file.png')
-                    };
-
-                    $filePath = 'uploads/projects/documents/'.$doc->file;
-                    $viewUrl = asset($filePath);
-                    $downloadUrl = route('tenant.projects.download.doc', $doc->id);
-
-                    $html .= "
-                        <div class='d-flex align-items-center gap-2 mb-1'>
-                            <img src='{$icon}' width='20'>
-                            <a href='{$viewUrl}' target='_blank'>{$doc->file}</a>
-                            <a href='{$downloadUrl}' class='btn btn-sm btn-outline-primary'>⬇</a>
-                        </div>
-                    ";
-                }
-
-                return $html;
-            })
-
-
-
-            ->addColumn('completed_by', function ($t) {
-
-                if (!$t->completer) {
-                    return '-';
-                }
-
-             if ($t->completer->profile) {
-                 $url = asset('uploads/tenantusers/profile/' . $t->completer->profile);
+                $profile = $user->profile
+                    ? asset('uploads/tenantusers/profile/' . $user->profile)
+                    : asset('images/default-profile.png');
 
                 return "
                     <div class='d-flex align-items-center gap-2'>
-                        <img src='{$url}' width='35' height='35' style='border-radius:50%;object-fit:cover'>
-                        <span>{$t->completer->name}</span>
+                        <img src='{$profile}' width='35' height='35' style='border-radius:50%;object-fit:cover'>
+                        <span>{$user->name}</span>
                     </div>
                 ";
-             }
-             return "<img src='".asset('images/default-profile.png')."' width='50' height='50' style='border-radius:50%;object-fit:cover'>";
-            })
-
-           ->addColumn('created_by', function ($t) {
-
-                $users = $t->creators();
-
-                if ($users->isEmpty()) {
-                    return '-';
-                }
-
-                return $users->pluck('name')->implode(', ');
-            })
-
-
-            ->addColumn('archived_by', function ($t) {
-
-                $users = $t->archivers();
-
-                if ($users->isEmpty()) {
-                    return '-';
-                }
-
-                return $users->pluck('name')->implode(', ');
             })
 
 
@@ -166,13 +104,10 @@ class ProjectController extends Controller
             })
 
         ->rawColumns([
-            'documents',
             'dates',
             'status_btn',
             'action',
-            'completed_by',
             'created_by',
-            'archived_by'
         ])
 
             ->make(true);
@@ -194,7 +129,7 @@ class ProjectController extends Controller
     // ===============================
     public function edit($id)
     {
-        $project = Project::findOrFail($id);
+        $project = Project::with(['teamMembers', 'clients'])->findOrFail($id);
 
         return response()->json([
             'name'              => $project->name,
@@ -207,16 +142,15 @@ class ProjectController extends Controller
             'completion_percent'=> $project->completion_percent,
             'hours_allocated'   => $project->hours_allocated,
             'remarks'           => $project->remarks,
+            'created_by'        => $project->created_by,
+            'status'            => $project->status,
 
-            // For Select2 multi-select (IDs)
-            'created_by'   => $project->created_by ?? [],
-            'archived_by'  => $project->archived_by ?? [],
-
-            // Single user
-            'completed_by' => $project->completed_by,
-            'status'       => $project->status,
+            // 👇 pivot data
+            'user_id'   => $project->teamMembers->pluck('id'),
+            'client_id' => $project->clients->pluck('id'),
         ]);
     }
+
 
 
 
@@ -255,7 +189,7 @@ class ProjectController extends Controller
 
     public function show($id)
     {
-        $project = Project::with(['documents', 'completer'])->findOrFail($id);
+        $project = Project::with(['documents', 'createdBy'])->findOrFail($id);
 
         return view('tenant.admin.projects.show', compact('project'));
     }

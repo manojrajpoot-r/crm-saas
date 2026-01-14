@@ -22,12 +22,6 @@
     <script>
 
         $(document).ready(function () {
-
-            let fields = {
-                name: "text",
-                status: "select:Active,Inactive"
-            };
-
             let columns = [
                 { data: 'DT_RowIndex', title: '#', orderable: false, searchable: false },
                 { data: 'name', title: 'Name' },

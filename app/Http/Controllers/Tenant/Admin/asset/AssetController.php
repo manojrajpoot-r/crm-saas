@@ -85,11 +85,13 @@ class AssetController extends Controller
     {
 
         $t = Asset::find($id);
-        $json=[
-            "name" => $t->name,
-            "code" => $t->code,
-            "type" => $t->type,
-        ];
+
+         $json=[
+            "fields" => [
+                    "name" => ["type"=>"text", "value"=>$t->name],
+                    "code" => ["type"=>"text", "value"=>$t->code],
+                     "type" => ["type"=>"text", "value"=>$t->type],
+            ]];
         return response()->json($json);
     }
 

@@ -3,6 +3,7 @@ namespace App\Http\Controllers\Tenant\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Tenant\TenantUser;
+use App\Models\Tenant\Role;
 use App\Traits\UniversalCrud;
 class TenantUserController extends Controller
 {
@@ -25,22 +26,22 @@ class TenantUserController extends Controller
                return $t->role?->name ?? 'N/A';
 
             })
-                 ->addColumn('profile_img', function ($t) {
-                    if ($t->profile) {
-                        $url = asset('uploads/tenantusers/profile/' . $t->profile);
-                        return "<img src='{$url}' width='50' height='50' style='border-radius:50%;object-fit:cover'>";
-                    }
+            ->addColumn('profile_img', function ($t) {
+            if ($t->profile) {
+                $url = asset('uploads/tenantusers/profile/' . $t->profile);
+                return "<img src='{$url}' width='50' height='50' style='border-radius:50%;object-fit:cover'>";
+            }
 
-                    return "<img src='".asset('images/default-profile.png')."' width='50' height='50' style='border-radius:50%;object-fit:cover'>";
-                })
+            return "<img src='".asset('images/default-profile.png')."' width='50' height='50' style='border-radius:50%;object-fit:cover'>";
+        })
 
 
 
-                ->addColumn('status_btn', function ($t) {
+        ->addColumn('status_btn', function ($t) {
 
-                if (!canAccess('users status')) {
-                    return "<span class='badge bg-secondary'>No Access</span>";
-                }
+        if (!canAccess('users status')) {
+            return "<span class='badge bg-secondary'>No Access</span>";
+        }
 
                 $class = $t->status ? "btn-success" : "btn-danger";
                 $text = $t->status ? "Active" : "Inactive";
@@ -128,12 +129,22 @@ class TenantUserController extends Controller
     // ===============================
     public function edit($id)
     {
-        $t = TenantUser::find($id);
-        $json=[
-            "name" => $t->name,
-            "email" => $t->email ?? "",
-        ];
-        return response()->json($json);
+
+       $t = TenantUser::with('role')->findOrFail($id);
+
+    return response()->json([
+        "fields" => [
+            "name" => ["type"=>"text", "value"=>$t->name],
+            "email" => ["type"=>"text", "value"=>$t->email],
+            "phone" => ["type"=>"text", "value"=>$t->phone],
+            "profile" => ["type"=>"file", "value"=> $t->profile ? asset('uploads/tenantusers/profile/'.$t->profile) : ""],
+            "role_id" => [
+                "type" => "select",
+                "value" => $t->role_id,
+                "options" => Role::select('id','name')->get()
+            ]
+        ]
+    ]);
     }
 
     // ===============================

@@ -9,6 +9,11 @@
         @if (canAccess('users add'))
              <button id="addBtn" class="btn btn-primary mb-2">Add User</button>
         @endif
+        <div class="text-center">
+            @if (canAccess('users import'))
+                    <a href="{{route('saas.import.users.index')}}"  class="btn btn-primary mb-2">Import</a>
+                @endif
+        </div>
         @include('tenant.includes.universal-datatable')
     </div>
 </div>
@@ -39,6 +44,12 @@
             // ADD BUTTON
             // =======================
             $("#addBtn").click(function() {
+
+
+                $("#universalForm")[0].reset();
+                $("#profilePreview").html("");
+                $(".profile-preview").remove();
+
                 let rolelist = "{{ currentGuard() === 'saas'? route('saas.roles.list'): route('tenant.roles.list', ['tenant' => currentTenant()]) }}";
                 $.get(rolelist, function(roles) {
 
@@ -51,13 +62,17 @@
                     email: "text",
                     password: "password",
                     profile: "file",
-                    role_id: "select:" + roleOptions
+                    role_id: "select:" + roleOptions,
+
                 };
 
                 let usersstore = "{{ currentGuard() === 'saas'? route('saas.users.store'): route('tenant.users.store', ['tenant' => currentTenant()]) }}";
                 $("#universalForm").attr("action", usersstore);
 
                     loadForm(fields, "Add User");
+
+
+
                 });
             });
         });

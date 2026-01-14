@@ -19,13 +19,13 @@ public function index(User $user = null)
 {
     $authId = Auth::guard('web')->id();
 
-    // 1️⃣ Sidebar users
+    //  Sidebar users
     $users = User::where('id', '!=', $authId)->get();
 
     $conversation = null;
     $messages = collect();
 
-    // 2️⃣ Agar user select kiya
+    // Agar user select kiya
     if ($user) {
 
         // Conversation find
@@ -47,13 +47,13 @@ public function index(User $user = null)
             ->orderBy('id')
             ->get();
 
-        // ✅ Mark received messages as read
+        //  Mark received messages as read
         Message::where('conversation_id', $conversation->id)
             ->where('sender_id', '!=', $authId)
             ->update(['is_read' => 1]);
     }
 
-    // 3️⃣ Unread count per user (NO receiver_id)
+    //  Unread count per user (NO receiver_id)
     $users = $users->map(function ($u) use ($authId) {
 
         $conversation = Conversation::whereHas('users', function ($q) use ($authId) {

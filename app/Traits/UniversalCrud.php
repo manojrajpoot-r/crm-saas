@@ -21,9 +21,15 @@ use App\Models\Tenant\EmployeeEducation;
 use App\Models\Tenant\EmployeeExperience;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
+
+
+
 trait UniversalCrud
 {
-
+   public function formatDate($date){
+        return $date ? $date->format('d F Y') : '';
+    }
     public function autoUpload(Request $request, $model, $id = null)
     {
         $modelName = strtolower(Str::plural(class_basename($model)));
@@ -88,70 +94,10 @@ trait UniversalCrud
     }
 
 
-    // public function saveData(Request $request, $model, $id = null)
-    // {
-
-    //     $rules = method_exists($model, 'rules') ? $model::rules($id) : [];
-    //     $validator = Validator::make($request->all(), $rules);
-
-    //     if ($validator->fails()) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'errors' => $validator->errors()
-    //         ], 422);
-    //     }
-
-    //     $data = $request->except('_token');
-
-    //     // ===== MULTI-ROW INSERT (NO FILE UPLOAD) =====
-    //     if (!$id && isset($data['group']) && is_array($data['group'])) {
-
-    //         $rows = [];
-    //         foreach ($data['group'] as $action) {
-    //             $rows[] = [
-    //                 'name'  => $data['name'],
-    //                 'group' => $action,
-    //             ];
-    //         }
-
-    //         $model::insert($rows);
-
-    //         return response()->json([
-    //             'status' => 'success',
-    //             'message' => 'Created multiple permissions successfully'
-    //         ]);
-    //     }
-
-    //     // ===== AUTO FILE UPLOAD (CREATE + UPDATE) =====
-
-    //     $files = $this->autoUpload($request, $model, $id);
-
-
-    //     $data  = array_merge($data, $files);
-
-    //     // ===== UPDATE =====
-    //     if ($id) {
-
-    //         $record = $model::findOrFail($id);
-    //         $record->update($data);
-
-    //         return response()->json([
-    //             'status' => 'success',
-    //             'message' => 'Updated successfully'
-    //         ]);
-    //     }
-
-    //     // ===== SINGLE CREATE =====
-    //     $model::create($data);
-
-    //     return response()->json([
-    //         'status' => 'success',
-    //         'message' => 'Created successfully'
-    //     ]);
-    // }
 
 public function saveData(Request $request, $model, $id = null)
 {
+
     $rules = method_exists($model, 'rules') ? $model::rules($id) : [];
     Validator::make($request->all(), $rules)->validate();
 
@@ -161,8 +107,12 @@ public function saveData(Request $request, $model, $id = null)
         'document_titles'
     ]);
 
+        if (!empty($data['actual_start_date']) && !empty($data['end_date'])) {
+            $start = Carbon::parse($data['actual_start_date']);
+            $end   = Carbon::parse($data['end_date']);
 
-
+            $data['total_days'] = $start->diffInDays($end) + 1;
+        }
 
         if (Auth::check()) {
             $data['created_by'] = Auth::id();
@@ -195,6 +145,17 @@ public function saveData(Request $request, $model, $id = null)
     $record = $id
         ? tap($model::findOrFail($id))->update($data)
         : $model::create($data);
+
+
+    // ===== MULTIPLE users =====
+       if ($request->filled('user_id')) {
+            $record->teamMembers()->sync($request->user_id);
+        }
+
+        if ($request->filled('client_id')) {
+            $record->clients()->sync($request->client_id);
+        }
+
 
     // ===== MULTIPLE DOCUMENTS =====
     if ($request->hasFile('documents')) {
@@ -442,35 +403,37 @@ public function saveEmployeeAll($request, $employeeId = null)
 
 
     // DELETE
-    public function deleteData($model, $id, $related = [])
-    {
-        $data = $model::find($id);
+public function deleteData($model, $id, $relations = [], $nullRelations = [])
+{
+    $data = $model::find($id);
 
-
-            Employee::where('report_to', $id)->update([
-             'report_to' => null
-             ]);
-
-
-        if (!$data) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Record not found!'
-            ], 404);
-        }
-
-        // Delete related tables if provided
-        foreach ($related as $relatedModel => $column) {
-            $relatedModel::where($column, $id)->delete();
-        }
-
-        $data->delete();
-
+    if (!$data) {
         return response()->json([
-            'success' => true,
-            'message' => 'Deleted Successfully'
+            'success' => false,
+            'message' => 'Record not found!'
+        ], 404);
+    }
+
+    // Set null relations (like report_to)
+    foreach ($nullRelations as $nullModel => $column) {
+        $nullModel::where($column, $id)->update([
+            $column => null
         ]);
     }
+
+    // Delete related records
+    foreach ($relations as $relModel => $column) {
+        $relModel::where($column, $id)->delete();
+    }
+
+    $data->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Deleted Successfully'
+    ]);
+}
+
 
     // STATUS TOGGLE
     public function toggleStatus($model, $id)

@@ -40,21 +40,14 @@
 
                                                 $filePath = 'uploads/projects/documents/'.$doc->file;
                                                 $viewUrl = asset($filePath);
-
-
-                                                $users = $project->creators();
-                                                      if ($users->isEmpty()) {
-                                                            return '-';
-                                                        }
-
-                                                $creators = $users->pluck('name')->implode(', ');
+                                                $user = $project->createdBy;
                                         @endphp
                                         <div class="d-flex align-items-center gap-2 mb-2">
                                             <img src="{{$icon }}" width="24">
                                             <a href="{{ $viewUrl }}"
                                             target="_blank">
                                             {{ $doc->file }}
-                                            <span style="color:chocolate">{{$creators ?? '-'}}</span>
+                                            <span style="color:chocolate">{{$user->name ?? '-'}}</span>
                                             <span>{{$project->created_at->format('d, M Y') ?? '-'}}</span>
                                             </a>
                                         </div>
@@ -75,7 +68,7 @@
                                             <tr>
                                                 <th>Created by:</th>
 
-                                                <td style="color:chocolate">{{ $creators ?? '-' }}</td>
+                                                <td style="color:chocolate">{{ $user->name ?? '-' }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Status:</th>

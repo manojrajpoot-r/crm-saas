@@ -31,8 +31,14 @@
      <li class="nav-item">
         <a class="nav-link {{ request()->routeIs('tenant.posts.index') ? 'active' : '' }}"
            href="{{ route('tenant.posts.index',['id'=>$project->id]) }}">
-
         Discussions
+     </a>
+    </li>
+
+     <li class="nav-item">
+        <a class="nav-link {{ request()->routeIs('tenant.teams.index') ? 'active' : '' }}"
+           href="{{ route('tenant.teams.index',['id'=>$project->id]) }}">
+        Team Member
      </a>
     </li>
 </ul>

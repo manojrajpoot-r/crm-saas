@@ -63,7 +63,6 @@ class PostController extends Controller
             })
 
             ->addColumn('description', function ($t) {
-
                 $desc = strip_tags($t->description ?? '');
 
                 if (strlen($desc) > 100) {
@@ -78,9 +77,16 @@ class PostController extends Controller
                     <div>
                         <div class='fw-semibold'>{$desc}</div>
                         <small class='text-muted'>Created: {$date}</small>
+                        <div>
+                            <button class='btn btn-sm btn-primary viewPostDetails'
+                                    data-url='".route('tenant.posts.show', $t->id)."'>
+                                View
+                            </button>
+                        </div>
                     </div>
                 ";
             })
+
 
             ->addColumn('status_btn', function ($t) {
                 if (!canAccess('post status')) {
@@ -146,6 +152,36 @@ class PostController extends Controller
         return $this->saveData($request, Post::class);
     }
 
+    public function show($id)
+    {
+        $post = Post::with('documents')->findOrFail($id);
+
+        $documents = $post->documents->map(function ($doc) {
+            $ext = strtolower(pathinfo($doc->file, PATHINFO_EXTENSION));
+
+            $icon = match ($ext) {
+                'pdf' => asset('assets/img/icons/pdf.png'),
+                'doc', 'docx' => asset('assets/img/icons/word.png'),
+                'xls', 'xlsx' => asset('assets/img/icons/excel.png'),
+                'zip', 'rar' => asset('assets/img/icons/zip.png'),
+                default => asset('assets/img/icons/file.png'),
+            };
+
+            return [
+                'id' => $doc->id,
+                'name' => basename($doc->file),
+                'url' => asset('uploads/posts/documents/' . $doc->file),
+                'icon' => $icon,
+            ];
+        });
+
+        return response()->json([
+            'title' => $post->title,
+            'description' => $post->description,
+            'documents' => $documents,
+            'created_at' => $post->created_at->format('d M Y'),
+        ]);
+    }
 
     // ===============================
     // EDIT
@@ -155,8 +191,9 @@ class PostController extends Controller
 
         $t = Post::find($id);
         $json=[
-            "name" => $t->name,
-        ];
+            "fields" => [
+                    "name" => ["type"=>"text", "value"=>$t->name],
+            ]];
         return response()->json($json);
     }
 

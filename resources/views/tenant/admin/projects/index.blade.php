@@ -30,10 +30,7 @@
             let columns = [
                 { data: 'DT_RowIndex', title: '#', orderable: false, searchable: false },
                 { data: 'name', title: 'Project Name' },
-                {data:'documents',title: 'Document'},
-                { data: 'completed_by', title: 'Leader' },
-                { data: 'created_by', title: 'Add Team' },
-                { data: 'archived_by', title: 'Add Clients'},
+                { data: 'created_by', title: 'Created At' },
                 { data: 'dates',title: 'Date'},
                 { data: 'dead_line', title: 'Dead Line' },
                 { data: 'status_btn', title: 'Status', orderable: false, searchable: false },
@@ -64,11 +61,9 @@
                         end_date: "date",
                         actual_start_date: "date",
                         total_days: "number",
-                        completion_percent: "number",
-                        hours_allocated: "number",
-                        created_by: "select-multiple:" + userOptions,
-                        archived_by: "select-multiple:" + userOptions,
-                        completed_by: "select:" + userOptions,
+                        created_by: "select:" + userOptions,
+                        user_id: "multiselect:" + userOptions,
+                        client_id: "multiselect:" + userOptions,
                         status: "select:" + statusOptions,
                         remarks: "text",
 
@@ -79,6 +74,8 @@
                 let usersstore = "{{ currentGuard() === 'saas'? route('saas.projects.store'): route('tenant.projects.store', ['tenant' => currentTenant()]) }}";
                 $("#universalForm").attr("action", usersstore);
                 loadForm(fields, "Add Project");
+                  // summer note
+                 initSummernote('#globalModal');
                 // multiple files
                  addDocumentField();
                 });

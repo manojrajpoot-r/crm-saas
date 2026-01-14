@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Tenant\Admin\designation;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Tenant\Designation;
+use App\Models\Tenant\Department;
 use App\Traits\UniversalCrud;
 class DesignationController extends Controller
 {
@@ -75,12 +76,18 @@ class DesignationController extends Controller
     public function edit($id)
     {
         $t = Designation::find($id);
-        $department = $t->department->name ?? null;
+        $department = Department::get();
+   $json=[
+        "fields" => [
+            "name" => ["type"=>"text", "value"=>$t->name],
+            "department_id" => [
+                "type" => "select",
+                "value" => $t->department_id,
+                "options" => $department,
+            ]]];
 
-        $json=[
-            "name" => $t->name,
-            "department_id" => $department,
-        ];
+
+
         return response()->json($json);
     }
 

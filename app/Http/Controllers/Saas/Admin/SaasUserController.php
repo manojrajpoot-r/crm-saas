@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Traits\UniversalCrud;
 use App\Models\User;
+use App\Models\Role;
 class SaasUserController extends Controller
 {
 
@@ -28,6 +29,14 @@ class SaasUserController extends Controller
                return $t->role?->name ?? 'N/A';
 
             })
+            ->addColumn('profile_img', function ($t) {
+            if ($t->profile) {
+                $url = asset('uploads/users/profile/' . $t->profile);
+                return "<img src='{$url}' width='50' height='50' style='border-radius:50%;object-fit:cover'>";
+            }
+
+            return "<img src='".asset('images/default-profile.png')."' width='50' height='50' style='border-radius:50%;object-fit:cover'>";
+        })
           ->addColumn('status_btn', function ($t) {
 
                 if (!canAccess('users status')) {
@@ -73,7 +82,7 @@ class SaasUserController extends Controller
                 return $buttons ?: 'No Action';
             })
 
-            ->rawColumns(['status_btn','action'])
+            ->rawColumns(['profile_img','status_btn','action'])
             ->make(true);
     }
 
@@ -100,15 +109,25 @@ class SaasUserController extends Controller
   // ===============================
     // EDIT
     // ===============================
-    public function edit($id)
-    {
-        $t = User::find($id);
-        $json=[
-            "name" => $t->name,
-            "email" => $t->email ?? "",
-        ];
-        return response()->json($json);
-    }
+public function edit($id)
+{
+    $t = User::with('role')->findOrFail($id);
+
+    return response()->json([
+        "fields" => [
+            "name" => ["type"=>"text", "value"=>$t->name],
+            "email" => ["type"=>"text", "value"=>$t->email],
+            "phone" => ["type"=>"text", "value"=>$t->phone],
+            "profile" => ["type"=>"file", "value"=> $t->profile ? asset('uploads/users/profile/'.$t->profile) : ""],
+            "role_id" => [
+                "type" => "select",
+                "value" => $t->role_id,
+                "options" => Role::select('id','name')->get()
+            ]
+        ]
+    ]);
+}
+
 
     // ===============================
     // UPDATE
@@ -125,12 +144,7 @@ class SaasUserController extends Controller
     // ===============================
     public function delete($id)
     {
-        return $this->deleteData(
-            User::class,
-            $id,
-
-
-        );
+        return $this->deleteData(User::class, $id);
     }
 
 

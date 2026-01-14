@@ -29,9 +29,9 @@
             let columns = [
                 { data: 'DT_RowIndex', title: '#', orderable: false, searchable: false },
                 { data: 'title', title: 'Name' },
-                 { data: 'start_date_formatted', title: 'Start Date' },
-                { data: 'end_date_formatted', title: 'End Date' },
-                { data: 'created_at_formatted', title: 'Created At' },
+                 { data: 'start_date', title: 'Start Date' },
+                { data: 'end_date', title: 'End Date' },
+                { data: 'created_at', title: 'Created At' },
                 { data: 'status_btn', title: 'Status', orderable: false, searchable: false },
                 { data: 'action', title: 'Action', orderable: false, searchable: false }
             ];

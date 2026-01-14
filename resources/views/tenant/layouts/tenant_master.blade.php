@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
 
+
      <title class="btn btn-primary ms-2">{{ currentTenant() ? 'Tenant Dashboard' : 'SAAS Dashboard' }}</title>
 
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
@@ -19,11 +20,14 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.3/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
+
+
+
     <!-- Icons -->
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome-font-awesome.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet">
+
     {{-- select2 --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />    <label for="multiSelect">Multi Select:</label>
     {{-- summer note --}}
@@ -38,6 +42,24 @@
     <style>
 /* Ensure modal is relative for Select2 positioning */
 
+
+.la {
+    font-family: "Line Awesome Free" !important;
+    font-weight: 900;
+}
+
+
+.sidebar i.la {
+    width: 26px;
+    text-align: center;
+    display: inline-block;
+}
+
+.sidebar a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
 
 

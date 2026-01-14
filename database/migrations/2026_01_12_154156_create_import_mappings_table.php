@@ -11,8 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
+        Schema::create('import_mappings', function (Blueprint $table) {
+            $table->id();
+              $table->unsignedBigInteger('import_id');
+                $table->string('excel_column');
+                $table->string('db_field');
+            $table->timestamps();
         });
     }
 
@@ -21,8 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('import_mappings');
     }
 };

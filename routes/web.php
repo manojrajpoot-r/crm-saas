@@ -10,6 +10,7 @@ use App\Http\Controllers\Saas\Admin\SaasRolePermissionController;
 use App\Http\Controllers\Saas\Admin\SaasTenantCreateController;
 use App\Http\Controllers\Saas\Admin\chat\ChatController;
 use App\Http\Controllers\Saas\Admin\auth\TwoFactorController;
+use App\Http\Controllers\Saas\Admin\import\ImportController;
 use App\Http\Controllers\Front\face\FaceController;
 use App\Http\Controllers\Front\HomeController;
 
@@ -44,7 +45,7 @@ Route::domain('crm.saas.local')
 
     Route::middleware(['auth:web'])->group(function () {
 
-            Route::get('/dashboard', [SaasDashboardController::class, 'index'])->name('dashboard');
+            Route::get('/dashboard', [SaasDashboardController::class, 'index'])->name('dashboard.index');
             Route::post('/logout', [SaasAuthController::class, 'logout'])->name('logout');
 
             Route::moduleCRUD('Tenants', SaasTenantCreateController::class, 'tenants');
@@ -63,7 +64,12 @@ Route::domain('crm.saas.local')
             Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
 
 
-
+            Route::get('import/users', [ImportController::class,'upload'])->name('import.users.index');
+              Route::get('import', [ImportController::class,'index'])->name('import.index');
+            Route::post('upload', [ImportController::class,'upload'])->name('import.upload');
+            Route::get('imports', [ImportController::class,'list'])->name('imports.list');
+            Route::get('imports/status/{id}', [ImportController::class,'status']);
+            Route::post('imports/retry/{id}', [ImportController::class,'retry']);
 
 
 

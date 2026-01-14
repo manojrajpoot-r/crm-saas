@@ -25,9 +25,8 @@ $.ajaxSetup({
 // LOAD FORM FIELDS
 // =======================
 const fieldLabels = {
-    created_by: 'Add Team',
-    archived_by: 'Add Client',
-    completed_by: 'Add Project Leader'
+    user_id: 'Add Team',
+    client_id: 'Add Client'
 };
 
 function autoLabel(fieldName) {
@@ -58,25 +57,23 @@ function loadForm(fields, title) {
         let html = "";
 
         //  MULTI SELECT
-        if (type.startsWith("select-multiple:")) {
+          if (type.startsWith("multiselect:")) {
 
-            let options = type.replace("select-multiple:", "").split(",");
-            let optHtml = options.map(opt => {
-                let [value, text] = opt.split("|");
-                return `<option value="${value}">${text}</option>`;
-            }).join("");
+                let options = type.replace("multiselect:", "").split(",");
+                console.log(options);
+                let select = `<select name="${name}[]" multiple class="form-control select2">`;
+
+                options.forEach(opt => {
+                    let [id, label] = opt.split("|");
+                    select += `<option value="${id}">${label}</option>`;
+                });
+
+                select += `</select>`;
+                html += select;
+            }
 
 
 
-            html = `
-                <div class="mb-3">
-                    <label>${label}</label>
-                    <select name="${key}[]" class="form-control select2" multiple>
-                        ${optHtml}
-                    </select>
-                </div>
-            `;
-        }
 
 
         else if (type === 'textarea') {
@@ -118,6 +115,12 @@ function loadForm(fields, title) {
                 </div>
             `;
         }
+        // hidden
+
+        else if (type === 'hidden') {
+                html += `<input type="hidden" name="${key}">`;
+
+        }
 
         //  INPUT
         else {
@@ -129,6 +132,9 @@ function loadForm(fields, title) {
             `;
         }
 
+    if ($("#profilePreview").length === 0) {
+        $("#modalBody").append(`<div id="profilePreview" class="mt-2 text-center"></div>`);
+    }
         $("#modalBody").append(html);
     });
 
@@ -156,6 +162,145 @@ $("#globalModal").modal('show');
     });
 }
 
+
+
+
+// =======================
+// UNIVERSAL Change EDIT
+// =======================
+$(document).on("click", ".editBtn", function () {
+
+    let url = $(this).data("url");
+
+    $.get(url, function (res) {
+
+        let fields = {};
+        let values = {};
+
+        $.each(res.fields, function (key, obj) {
+
+            if (obj.type === "select") {
+                let opts = obj.options.map(r => `${r.id}|${r.name}`).join(",");
+                fields[key] = "select:" + opts;
+            } else {
+                fields[key] = obj.type;
+            }
+
+            values[key] = obj.value;
+        });
+
+        $("#universalForm").attr("action", url.replace("edit","update"));
+        loadForm(fields, "Edit");
+
+        $('#globalModal').off('shown.bs.modal').on('shown.bs.modal', function () {
+
+            $.each(values, function (key, val) {
+
+                let el = $("[name='"+key+"']");
+
+                if (el.prop("tagName") === "SELECT") {
+                    el.val(val).trigger("change.select2");
+                }
+                else if(el.attr("type") !== "file"){
+                    el.val(val);
+                }
+            });
+
+            $("#profilePreview").html(`<img ...>`);
+
+           let fileInput = $("[name='profile']");
+
+            fileInput.closest(".mb-3").find(".profile-preview").remove();
+
+            fileInput.closest(".mb-3").append(`
+                <div class="profile-preview mt-2 text-center">
+                    <img src="${values.profile}"
+                        style="max-width:120px;border-radius:8px;border:1px solid #ddd">
+                </div>
+            `);
+
+        });
+    });
+});
+
+
+// =======================
+// UNIVERSAL Change EDIT Project
+// =======================
+$(document).on("click", ".editBtnProject", function () {
+    let url = $(this).data("url");
+
+    $.get(url, function (res) {
+
+        // Step 1: create full fields like Add modal
+        let userlist = "{{ currentGuard() === 'saas'? route('saas.users.list'): route('tenant.users.list', ['tenant' => currentTenant()]) }}";
+        $.get(userlist, function(users) {
+
+            let data = users.data;
+            let userOptions = data.map(u => `${u.id}|${u.name}`).join(',');
+
+            let statusOptions = "created|Created,working|Working,on_hold|On Hold,finished|Finished,maintenance|Maintenance,delay|Delay,handover|Handover,discontinued|Discontinued,inactive|Inactive";
+            let typeOptions = "fixed|Fixed,product|Product";
+
+            let fields = {
+                type: "select:" + typeOptions,
+                name: "text",
+                description: "textarea",
+
+                start_date: "date",
+                end_date: "date",
+                actual_start_date: "date",
+
+                total_days: "number",
+                completion_percent: "number",
+                hours_allocated: "number",
+
+                created_by: "select:" + userOptions,
+                 user_id: "multiselect:" + userOptions,
+                client_id: "multiselect:" + userOptions,
+                status: "select:" + statusOptions,
+                remarks: "text",
+            };
+
+            // Step 2: set form action to update
+            $("#universalForm").attr("action", url.replace("edit", "update"));
+
+            // Step 3: load modal
+            loadForm(fields, "Edit Project");
+
+            // Step 4: pre-fill values
+            // console.log((res));
+
+       setTimeout(() => {
+
+    // Step 1 — init select2 AFTER HTML is created
+    $('.select2').select2({
+        width: '100%'
+    });
+
+    // Step 2 — fill values
+    $.each(res, function (key, value) {
+
+        if (Array.isArray(value)) {
+            let el = $("[name='" + key + "[]']");
+
+            let stringValues = value.map(v => v.toString());
+
+            el.val(stringValues).trigger('change');   // 🔥 no select2 in trigger
+        }
+        else {
+            let el = $("[name='" + key + "']");
+            el.val(value).trigger('change');
+        }
+
+    });
+
+}, 300);
+
+
+        });
+    });
+});
 
 // =======================
 // UNIVERSAL STATUS CHANGE
@@ -207,6 +352,9 @@ $("#globalModal").modal('show');
     });
 
 
+
+    //comment model
+
     let dynamicfields = {
         comment: "textarea",
         commentable_type: "hidden",
@@ -237,8 +385,7 @@ $("#globalModal").modal('show');
 
     });
 
-
-
+//view post /////////////////////
 $(document).on('click', '.viewComments', function () {
 
     let url = $(this).data('url');
@@ -254,15 +401,32 @@ $(document).on('click', '.viewComments', function () {
             html = `<div class="text-center text-muted">No comments found</div>`;
         } else {
             comments.forEach(c => {
-                html += `
-                    <div class="border rounded p-2 mb-2">
-                        <div class="d-flex justify-content-between">
-                            <strong>${c.user.name}</strong>
-                            <small class="text-muted">${c.created_at}</small>
-                        </div>
-                        <div class="mt-1">${c.comment}</div>
+               html += `
+                <div class="border rounded p-2 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <strong>${c.user.name}</strong>
+                        <small class="text-muted">${c.created_at}</small>
                     </div>
-                `;
+
+                    <div class="mt-1">${c.comment}</div>
+
+                    ${
+                        c.documents && c.documents.length
+                        ? `<div class="mt-2 d-flex flex-wrap gap-2">
+                            ${c.documents.map(d => `
+                                <a href="${d.url}" download
+                                class="border rounded p-2 text-center"
+                                style="width:90px">
+                                    <img src="${d.icon}" width="28">
+                                    <div class="small text-truncate">${d.name}</div>
+                                </a>
+                            `).join('')}
+                        </div>`
+                        : ''
+                    }
+                </div>
+            `;
+
             });
         }
 
@@ -273,97 +437,47 @@ $(document).on('click', '.viewComments', function () {
 
 
 
+//view post //////////////////////////////////////////
+$(document).on('click', '.viewPostDetails', function() {
+    let url = $(this).data('url');
 
+    $('#postModalTitle').text('Loading...');
+    $('#postModalBody').html('Loading...');
 
-// =======================
-// UNIVERSAL Change EDIT
-// =======================
-$(document).on("click", ".editBtn", function () {
-    let url = $(this).data("url");
+    $.get(url, function(res) {
+        $('#postModalTitle').text(res.title);
 
-    $.get(url, function (res) {
+        let docsHtml = '';
+        if (res.documents.length) {
+            docsHtml = `<div class="mt-2 d-flex flex-wrap gap-2">`;
+            res.documents.forEach(d => {
+                docsHtml += `
+                    <a href="${d.url}" download class="border rounded p-2 text-center" style="width:90px">
+                        <img src="${d.icon}" width="28">
+                        <div class="small text-truncate">${d.name}</div>
+                    </a>
+                `;
+            });
+            docsHtml += `</div>`;
+        }
 
-        // Step 1: dynamic form fields create
-        let fields = {};
-        $.each(res, function (key, value) {
-            fields[key] = "text";
-        });
+        $('#postModalBody').html(`
+            <div class="fw-semibold">${res.description}</div>
+            <small class="text-muted">Created: ${res.created_at}</small>
+            ${docsHtml}
+        `);
 
-        // Step 2: show modal
-        $("#universalForm").attr("action", url.replace("edit", "update"));
-        loadForm(fields, "Edit");
-
-        // Step 3: auto-fill
-        $.each(res, function (key, value) {
-            $("[name='" + key + "']").val(value);
-        });
-
-    });
-});
-
-// =======================
-// UNIVERSAL Change EDIT Project
-// =======================
-$(document).on("click", ".editBtnProject", function () {
-    let url = $(this).data("url");
-
-    $.get(url, function (res) {
-
-        // Step 1: create full fields like Add modal
-        let userlist = "{{ currentGuard() === 'saas'? route('saas.users.list'): route('tenant.users.list', ['tenant' => currentTenant()]) }}";
-        $.get(userlist, function(users) {
-
-            let data = users.data;
-            let userOptions = data.map(u => `${u.id}|${u.name}`).join(',');
-
-            let statusOptions = "created|Created,working|Working,on_hold|On Hold,finished|Finished,maintenance|Maintenance,delay|Delay,handover|Handover,discontinued|Discontinued,inactive|Inactive";
-            let typeOptions = "fixed|Fixed,product|Product";
-
-            let fields = {
-                type: "select:" + typeOptions,
-                name: "text",
-                description: "textarea",
-
-                start_date: "date",
-                end_date: "date",
-                actual_start_date: "date",
-
-                total_days: "number",
-                completion_percent: "number",
-                hours_allocated: "number",
-                created_by: "select-multiple:" + userOptions,
-                archived_by: "select-multiple:" + userOptions,
-                completed_by: "select:" + userOptions,
-                status: "select:" + statusOptions,
-                remarks: "text",
-            };
-
-            // Step 2: set form action to update
-            $("#universalForm").attr("action", url.replace("edit", "update"));
-
-            // Step 3: load modal
-            loadForm(fields, "Edit Project");
-
-            // Step 4: pre-fill values
-            setTimeout(() => { // wait for DOM + select2
-                $.each(res, function(key, value) {
-                    if(key === 'created_by' || key === 'archived_by') {
-                        $("[name='" + key + "[]']").val(value).trigger('change');
-                    } else {
-                        $("[name='" + key + "']").val(value).trigger('change');
-                    }
-                });
-            }, 200);
-        });
+        $('#postDetailsModal').modal('show');
     });
 });
 
 
 
 
-// =======================
-// UNIVERSAL CHANGE PASSWORD
-// =======================
+
+// ===========================================================
+// UNIVERSAL CHANGE PASSWORD  multiple model open
+// =========================================================
 $(document).on("click", ".changePasswordBtn", function () {
     let url = $(this).data("url");
 
@@ -606,7 +720,7 @@ $('#present_zipcode').on('blur', function () {
 
 
 // =======================
-// NULTIPLE FILES
+// MULTIPLE FILES
 // =======================
 function addDocumentField(delay = 0) {
     setTimeout(() => {
@@ -650,6 +764,92 @@ function initSummernote(context = document) {
         $(this).addClass('summernote-initialized');
     });
 }
+
+
+// =======================
+// MULTIPLE SELECT 2
+// =======================
+
+$("#userSearch").on("keyup", function () {
+    let q = $(this).val().trim();
+
+    if (q.length < 2) {
+        $("#userList").hide().html('');
+        return;
+    }
+
+    $.get("/search-users?q=" + q, function (res) {
+
+        let html = '';
+
+        if (res.length === 0) {
+            html = `<div class="list-group-item text-muted">No users found</div>`;
+        } else {
+            res.forEach(u => {
+                let img = u.profile
+                    ? `/uploads/tenantusers/profile/${u.profile}`
+                    : `https://ui-avatars.com/api/?name=${u.name}`;
+
+                html += `
+                    <a href="#" class="list-group-item list-group-item-action selectUser"
+                       data-id="${u.id}" data-name="${u.name}">
+                        <img src="${img}" width="30" class="rounded-circle me-2">
+                        ${u.name}
+
+                    </a>
+                `;
+            });
+        }
+
+        $("#userList").html(html).show();
+    });
+});
+
+
+$(document).on("click", ".selectUser", function (e) {
+    e.preventDefault();
+
+    let id = $(this).data("id");
+    let name = $(this).data("name");
+
+    if ($("#user_" + id).length) return;
+
+    $("#selectedUsers").append(`
+        <div class="badge bg-primary px-2 py-1 d-flex align-items-center">
+            ${name}
+            <input type="hidden" name="user_id[]" value="${id}" id="user_${id}">
+            <span class="ms-2 removeUser" style="cursor:pointer">&times;</span>
+        </div>
+    `);
+
+    $("#userSearch").val('');
+    $("#userList").hide();
+});
+
+//click outside hide
+$(document).click(function (e) {
+    if (!$(e.target).closest("#userSearch, #userList").length) {
+        $("#userList").hide();
+    }
+});
+
+// remove
+$(document).on("click", ".removeUser", function () {
+    $(this).parent().remove();
+});
+
+// submit
+
+$("#teamForm").submit(function (e) {
+    e.preventDefault();
+
+    $.post("/assign-team", $(this).serialize(), function (res) {
+        if(res.success){
+            Swal.fire("Saved!", "Team members added successfully", "success")
+            .then(()=> location.reload());
+        }
+    });
+});
 
 
 </script>

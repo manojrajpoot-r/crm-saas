@@ -73,10 +73,11 @@ class DepartmentController extends Controller
     {
         $t = Department::find($id);
 
-        $json=[
-            "name" => $t->name,
+         $json=[
+            "fields" => [
+                    "name" => ["type"=>"text", "value"=>$t->name],
+            ]];
 
-        ];
         return response()->json($json);
     }
 

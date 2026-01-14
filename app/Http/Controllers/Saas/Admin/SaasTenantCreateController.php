@@ -85,11 +85,12 @@ class SaasTenantCreateController extends Controller
     public function edit($id)
     {
         $t = Tenant::with('domains')->find($id);
-        $json=[
-            "name" => $t->name,
-            //"database" => $t->database,
-            "domain" => $t->domains->first()->domain ?? "",
-        ];
+         $json=[
+            "fields" => [
+                    "name" => ["type"=>"text", "value"=>$t->name],
+                    "domain" => ["type"=>"text", "value"=>$t->domains->first()->domain ?? ""],
+            ]];
+
         return response()->json($json);
     }
 

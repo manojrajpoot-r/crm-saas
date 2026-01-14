@@ -21,6 +21,8 @@ use App\Http\Controllers\Tenant\Admin\post\PostController;
 use App\Http\Controllers\Tenant\Admin\report\ReportController;
 use App\Http\Controllers\Tenant\Admin\chat\ChatController;
 use App\Http\Controllers\Tenant\Admin\comment\CommentController;
+use App\Http\Controllers\Tenant\Admin\team\TeamController;
+
 
 
 
@@ -41,7 +43,7 @@ Route::middleware(['tenant'])
 ->name('tenant.')
     ->group(function () {
         Route::get('/', [HomeController::class, 'index'])->name('index');
-        // Route::get('/login', [TenantAuthController::class, 'showLoginForm'])->name('login');
+
         // Route::post('/login', [TenantAuthController::class, 'login'])->name('login.submit');
 
         // Route::get('/register', [TenantAuthController::class, 'showRegisterForm'])->name('register');
@@ -66,8 +68,16 @@ Route::middleware(['tenant'])
             Route::moduleCRUD('Tasks',TaskController::class, 'tasks');
             Route::moduleCRUD('Posts',PostController::class, 'posts');
             Route::moduleCRUD('Comments',CommentController::class, 'comments');
+            Route::moduleCRUD('Teams', TeamController::class, 'teams');
+
+
+            Route::get('/search-users', [TeamController::class, 'searchUsers']);
+            Route::post('/assign-team', [TeamController::class, 'assignTeam']);
+
             Route::get('projects/documents/{id}/download', [ProjectController::class, 'downloadDoc'])->name('projects.download.doc');
-            // Route::get('posts/comments/{id}', [CommentController::class, 'indexData'])->name('comments.index');
+
+
+
 
             Route::get('reports/export', [ReportController::class, 'reportExport'])->name('reports.export');
             Route::get('/zipcode/{zip}', [EmployeeController::class, 'zipcode']);

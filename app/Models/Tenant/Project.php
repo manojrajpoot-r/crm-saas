@@ -3,10 +3,10 @@
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Traits\FormatsDates;
+use App\Traits\UniversalCrud;
 class Project extends BaseTenantModel
 {
-     use FormatsDates;
+     use UniversalCrud;
       protected $fillable = [
         'name',
         'type',
@@ -55,21 +55,37 @@ class Project extends BaseTenantModel
     }
 
     // Single user
-    public function completer()
+    public function createdBy()
     {
-        return $this->belongsTo(TenantUser::class, 'completed_by');
+        return $this->belongsTo(TenantUser::class, 'created_by');
     }
 
-    // Multiple users (JSON)
-    public function creators()
+
+    public function teamMembers()
     {
-        return TenantUser::whereIn('id', $this->created_by ?? [])->get();
+        return $this->belongsToMany(
+            TenantUser::class,
+            'project_team_members',
+            'project_id',
+            'user_id'
+        );
     }
 
-    public function archivers()
+
+    public function clients()
     {
-        return TenantUser::whereIn('id', $this->archived_by ?? [])->get();
+        return $this->belongsToMany(
+            TenantUser::class,
+            'project_clients',
+            'project_id',
+            'client_id'
+        );
     }
+
+
+
+
+
 
     public function documents()
     {

@@ -99,3 +99,76 @@
 .from-show-notify label{
 	padding-top: 0.65rem;
 }
+
+
+.user-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 20px 10px;
+    text-align: center;
+    transition: .3s;
+    cursor: pointer;
+}
+
+.user-card:hover {
+    box-shadow: 0 0 15px rgba(0,0,0,.08);
+    transform: translateY(-3px);
+}
+
+.user-card img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.user-card h6 {
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.user-card small {
+    color: #777;
+}
+
+/* Client Card */
+
+.client-card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+}
+
+.client-card img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+.client-card h6 {
+    margin-bottom: 2px;
+}
+
+.client-card small {
+    color: #777;
+}
+
+.client-card .status {
+    color: green;
+    font-weight: 600;
+    margin-top: 5px;
+}
+
+.client-card .dots {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 20px;
+    cursor: pointer;
+}

@@ -16,12 +16,14 @@ class SaasAuthController extends Controller
 
     public function login(Request $request)
     {
+
         if (Auth::guard('web')->attempt(
             $request->only('email','password')
         )) {
             return response()->json([
             'message' => 'SAAS admin login success',
-            'redirect' => route('saas.2fa.index')
+           // 'redirect' => route('saas.2fa.index')
+           'redirect' => route('saas.dashboard.index')
         ]);
 
         }

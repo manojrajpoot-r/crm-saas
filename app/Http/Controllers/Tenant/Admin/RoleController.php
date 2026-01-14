@@ -84,9 +84,10 @@ class RoleController extends Controller
     {
 
         $t = Role::find($id);
-        $json=[
-            "name" => $t->name,
-        ];
+         $json=[
+            "fields" => [
+                "name" => ["type"=>"text", "value"=>$t->name],
+            ]];
         return response()->json($json);
     }
 

@@ -155,7 +155,8 @@ class EmployeeController extends Controller
     // ===============================
     public function delete($id)
     {
-        return $this->deleteData(Employee::class,$id);
+       return $this->deleteData(Employee::class,$id,[],[Employee::class => 'report_to']);
+
     }
 
 

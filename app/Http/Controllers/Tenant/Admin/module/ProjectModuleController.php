@@ -29,7 +29,16 @@ class ProjectModuleController extends Controller
 
         return datatables()->of($query)
             ->addIndexColumn()
+            ->addColumn('created_at', function($item){
+                    return $this->formatDate($item->created_at);
+                })
 
+              ->addColumn('start_date', function($item){
+                    return $this->formatDate($item->created_at);
+                })
+                  ->addColumn('end_date', function($item){
+                    return $this->formatDate($item->created_at);
+                })
             ->addColumn('status_btn', function ($t) {
                 if (!canAccess('module status')) {
                     return "<span class='badge bg-secondary'>No Access</span>";
@@ -81,9 +90,10 @@ class ProjectModuleController extends Controller
     {
 
         $t = ProjectModule::find($id);
-        $json=[
-            "name" => $t->name,
-        ];
+         $json=[
+            "fields" => [
+                    "name" => ["type"=>"text", "value"=>$t->name],
+            ]];
         return response()->json($json);
     }
 
