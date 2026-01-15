@@ -14,7 +14,7 @@
     @include('tenant.includes.universal-scripts')
 
     <script>
-  $(document).ready(function () {
+        $(document).ready(function () {
 
                     let columns = [
                         { data: 'DT_RowIndex', title: '#', orderable: false, searchable: false },
@@ -27,11 +27,11 @@
                         { data: 'action', title: 'Action', orderable: false, searchable: false }
                     ];
 
+            let listUrl = "{{ currentGuard() === 'saas'? route('saas.imports.list'): route('tenant.imports.list', ['tenant' => currentTenant()]) }}";
 
-                    let listUrl = "{{ route('saas.imports.list')}}";
-                    loadDataTable(columns,listUrl);
+                                loadDataTable(columns,listUrl);
 
-        });
+                    });
 
     </script>
 @endpush

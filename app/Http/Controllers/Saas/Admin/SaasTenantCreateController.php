@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Validator;
 use App\Traits\UniversalCrud;
 use App\Models\Domain;
 use App\Models\Tenant;
+use Illuminate\Support\Facades\Log;
+
 class SaasTenantCreateController extends Controller
 {
     use UniversalCrud;
@@ -40,11 +42,23 @@ class SaasTenantCreateController extends Controller
                     return '-';
                 }
 
-                $class = $t->status ? "btn-success" : "btn-danger";
-                $text  = $t->status ? "Active" : "Inactive";
+               $text  = $t->status ? "Deactivate" : "Activate";
                 $url   = route('saas.tenants.status', $t->id);
 
-                return "<button class='btn btn-sm $class statusBtn' data-url='$url'>$text</button>";
+                $baseClass = "btn btn-sm btn-outline-secondary statusBtn";
+                $hoverClass = $t->status ? "hover-danger" : "hover-success";
+
+                $tooltip = $t->status
+                    ? "This will block the tenant’s website and log out all users."
+                    : "This will re-enable the tenant’s website.";
+
+                return "<button
+                    class='$baseClass $hoverClass'
+                    data-url='$url'
+                    data-bs-toggle='tooltip'
+                    title='$tooltip'>
+                    $text
+                </button>";
             })
 
             ->addColumn('action', function ($t) {
@@ -58,7 +72,15 @@ class SaasTenantCreateController extends Controller
 
                 if (canAccess('tenants delete')) {
                     $deleteUrl = route('saas.tenants.delete', $t->id);
-                    $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='$deleteUrl'>Delete</button> ";
+                    $buttons .= "<button
+                                        class='btn btn-outline-danger btn-sm deleteBtn'
+                                        data-url='$deleteUrl'
+                                        data-bs-toggle='tooltip'
+                                        data-bs-placement='top'
+                                        title='Permanently deletes tenant, database & all data. Cannot be undone.'>
+                                        Delete Tenant Permanently
+                                    </button>";
+
                 }
 
                 return $buttons ?: '-';
@@ -94,29 +116,56 @@ class SaasTenantCreateController extends Controller
         return response()->json($json);
     }
 
+
     // ===============================
-    // UPDATE
+    // UPDATE EXISTING TENANT
     // ===============================
     public function update(Request $request, $id)
     {
-        return $this->saveData($request, Tenant::class, [
-            'name' => 'required'
-        ], $id);
+
+        $request->merge(['id' => $id]);
+        return $this->saveTenant($request);
     }
+
 
     // ===============================
     // DELETE
     // ===============================
     public function delete($id)
     {
-        return $this->deleteData(
+        $tenant = Tenant::find($id);
+
+        if (!$tenant) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tenant not found'
+            ], 404);
+        }
+
+        $dbName = $tenant->database;
+
+        //  First delete using your dynamic system
+        $response = $this->deleteData(
             Tenant::class,
             $id,
             [
                 Domain::class => 'tenant_id'
             ]
         );
+
+        // If delete success, then drop database
+        if ($response->getData()->success) {
+            try {
+                DB::statement("DROP DATABASE IF EXISTS `$dbName`");
+            } catch (\Exception $e) {
+                // DB delete fail ho jaye to bhi system na toote
+                Log::error("Tenant DB delete failed: " . $e->getMessage());
+            }
+        }
+
+        return $response;
     }
+
 
 
     // ===============================
@@ -124,7 +173,9 @@ class SaasTenantCreateController extends Controller
     // ===============================
     public function status($id)
     {
-        return $this->toggleStatus(Tenant::class, $id);
+        return $this->tenant_toggleStatus($id);
     }
+
+
 
 }

@@ -5,31 +5,51 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Config;
- use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Log;
+use App\Models\Tenant;
+use App\Models\Domain;
 class TenantMiddleware
 {
 public function handle($request, Closure $next)
 {
     $host = $request->getHost();
-    $tenant = explode('.', $host)[0];
+    $subdomain = explode('.', $host)[0];
 
-    if (in_array($tenant, ['crm', 'www', 'localhost'])) {
+    // SaaS main domains skip
+    if (in_array($subdomain, ['crm', 'www', 'localhost'])) {
         config(['saas.current_tenant' => null]);
         return $next($request);
     }
 
-    $db = 'tenant_' . $tenant;
+    // Domain check
+    $domain = Domain::where('domain', $host)->first();
+
+    if (!$domain || !$domain->is_active) {
+        abort(403, 'Tenant disabled');
+    }
+
+    // Tenant check
+    $tenant = Tenant::where('id', $domain->tenant_id)
+                    ->where('status', 1)
+                    ->first();
+
+    if (!$tenant) {
+        abort(403, 'Tenant inactive');
+    }
+
+    // Connect correct database
+    $db = $tenant->database;   // tenant_google
 
     config(['database.connections.tenant.database' => $db]);
-
     DB::purge('tenant');
     DB::reconnect('tenant');
 
-    //  Store tenant globally
+    // Store current tenant globally
     config(['saas.current_tenant' => $tenant]);
 
     return $next($request);
 }
+
 
 
 // public function handle($request, Closure $next)

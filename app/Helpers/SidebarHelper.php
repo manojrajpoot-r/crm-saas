@@ -16,7 +16,7 @@ class SidebarHelper
 
             [
                 'name' => 'Dashboard',
-                'icon' => 'la la-home',
+               'icon' => 'la la-house-damage',
                 'url' => $isSaas ? route('saas.dashboard.index') : route('tenant.dashboard', ['tenant' => $tenant]),
                 'permission' => null,
             ],
@@ -101,17 +101,17 @@ class SidebarHelper
             'permission' => 'reports view',
         ] : null,
 
-        $isSaas ? [
+            [
                 'name' => 'Import',
-                'icon' => 'la la-comments',
-                'url' => route('saas.import.index'),
+                'icon' => 'la la-file-import',
+                'url' => $isSaas ? route('saas.import.index') : route('tenant.import.index'),
                 'permission' => $isSaas ? null : 'import view',
-            ]: null,
+            ],
 
             $isSaas ? [
                 'name' => 'Chat',
-                'icon' => 'la la-comments',
-                'url' => route('tenant.chat.index', $auth_id),
+               'icon' => 'la la-comment',
+                'url' => route('saas.chat.index', $auth_id),
                 'permission' => $isSaas ? null : 'chat view',
             ]: null,
 

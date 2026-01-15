@@ -8,6 +8,19 @@
     display: block;
 }
 
+
+.hover-danger:hover {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+    border-color: #dc3545 !important;
+}
+
+.hover-success:hover {
+    background-color: #198754 !important;
+    color: #fff !important;
+    border-color: #198754 !important;
+}
+
 </style>
 
 <script>
@@ -848,6 +861,16 @@ $("#teamForm").submit(function (e) {
             Swal.fire("Saved!", "Team members added successfully", "success")
             .then(()=> location.reload());
         }
+    });
+});
+
+
+
+//////////////////Tooltip////////////////////////////
+document.addEventListener("DOMContentLoaded", function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
 

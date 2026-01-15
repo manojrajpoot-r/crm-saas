@@ -8,8 +8,8 @@ class TenantUser extends Authenticatable
     use Authorizable;
     protected $connection = 'tenant';
     protected $table = 'users';
-    protected $primaryKey = 'id'; // if applicable
-    protected $fillable = ['name','email','password','role_id','profile'];
+    protected $primaryKey = 'id';
+    protected $fillable = ['name','email','password','role_id','profile','phone'];
     protected $hidden = ['password','remember_token'];
 
 

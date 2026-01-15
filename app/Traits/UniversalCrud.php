@@ -88,7 +88,7 @@ trait UniversalCrud
             $file->move($destination, $filename);
 
             $record->$relation()->create([
-                'file' => $filename, // ✅ only name in DB
+                'file' => $filename, //  only name in DB
             ]);
         }
     }
@@ -176,20 +176,116 @@ public function saveData(Request $request, $model, $id = null)
 
 
     // TENANT SPECIAL STORE
-    public function saveTenant(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name'   => 'required',
-            'domain' => 'required|unique:domains,domain'
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
+
+// public function saveTenant(Request $request)
+// {
+//     $validator = Validator::make($request->all(), [
+//         'name'   => 'required',
+//         'domain' => 'required|unique:domains,domain'
+//     ]);
+
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 'error',
+//             'errors' => $validator->errors()
+//         ], 422);
+//     }
+
+//     $tenantId = (string) Str::uuid();
+//     $dbName   = 'tenant_' . strtolower(str_replace(' ', '_', $request->name));
+//     $slug     = Str::slug($request->name);
+
+//     $exists = DB::select(
+//         "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?",
+//         [$dbName]
+//     );
+
+//     if ($exists) {
+//         return response()->json([
+//             'status' => 'error',
+//             'message' => "Database `$dbName` already exists!"
+//         ], 409);
+//     }
+
+//     DB::statement("CREATE DATABASE `$dbName`");
+
+//     // Save tenant
+//     $tenant = Tenant::create([
+//         'id'       => $tenantId,
+//         'name'     => $request->name,
+//         'slug'     => $slug,
+//         'database' => $dbName,
+//     ]);
+
+//     // Save domain
+//     Domain::create([
+//         'domain'    => $request->domain,
+//         'tenant_id' => $tenantId,
+//     ]);
+
+//     // Run migration
+//     config(['database.connections.tenant.database' => $dbName]);
+
+//     Artisan::call('migrate', [
+//         '--database' => 'tenant',
+//         '--path'     => 'database/migrations/tenant',
+//         '--force'    => true
+//     ]);
+
+//     return response()->json([
+//         'success' => true,
+//         'message' => 'Tenant created successfully!',
+//         'database' => $dbName
+//     ]);
+// }
+
+public function saveTenant(Request $request)
+{
+    $isUpdate = $request->has('id'); // agar id hai toh update mode
+
+    $rules = [
+        'name'   => 'required',
+        'domain' => $isUpdate
+            ? 'required|unique:domains,domain,' . $request->id . ',tenant_id' // update me unique exclude current tenant
+            : 'required|unique:domains,domain'
+    ];
+
+    $validator = Validator::make($request->all(), $rules);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => 'error',
+            'errors' => $validator->errors()
+        ], 422);
+    }
+
+    if ($isUpdate) {
+        // ================= UPDATE =================
+        $tenant = Tenant::findOrFail($request->id);
+        $tenant->name = $request->name;
+        $tenant->slug = Str::slug($request->name);
+        $tenant->save();
+
+        $domain = $tenant->domains()->first();
+        if ($domain) {
+            $domain->domain = $request->domain;
+            $domain->save();
+        } else {
+            // agar domain record missing ho toh create kar do
+            Domain::create([
+                'tenant_id' => $tenant->id,
+                'domain'    => $request->domain
+            ]);
         }
 
+        return response()->json([
+            'success' => true,
+            'message' => 'Tenant updated successfully!',
+        ]);
+
+    } else {
+        // ================= CREATE =================
         $tenantId = (string) Str::uuid();
         $dbName   = 'tenant_' . strtolower(str_replace(' ', '_', $request->name));
 
@@ -207,19 +303,17 @@ public function saveData(Request $request, $model, $id = null)
 
         DB::statement("CREATE DATABASE `$dbName`");
 
-        // Save tenant
         $tenant = Tenant::create([
             'id'       => $tenantId,
             'name'     => $request->name,
+            'slug'     => Str::slug($request->name),
             'database' => $dbName,
         ]);
 
-        // Save domain
         Domain::create([
-            'domain'    => $request->domain,
             'tenant_id' => $tenantId,
+            'domain'    => $request->domain,
         ]);
-
 
         // Run migration
         config(['database.connections.tenant.database' => $dbName]);
@@ -230,13 +324,13 @@ public function saveData(Request $request, $model, $id = null)
             '--force'    => true
         ]);
 
-
         return response()->json([
-            'status' => 'success',
+            'success' => true,
             'message' => 'Tenant created successfully!',
             'database' => $dbName
         ]);
     }
+}
 
 
 
@@ -443,8 +537,9 @@ public function deleteData($model, $id, $relations = [], $nullRelations = [])
         $record->save();
 
         return [
+            'success' =>true,
             'status'  => $record->status,
-            'message' => 'Status updated'
+            'message' => 'Status updated successfully!'
         ];
     }
 
@@ -470,11 +565,35 @@ public function deleteData($model, $id, $relations = [], $nullRelations = [])
             ]);
 
             return response()->json([
-                'status'  => 'success',
+                'success'  => true,
                 'message' => 'Status updated successfully'
             ]);
         }
 
+
+
+    public function tenant_toggleStatus($id)
+    {
+        $tenant = Tenant::findOrFail($id);
+
+        $newStatus = $tenant->status ? 0 : 1;
+
+        // Tenant status
+        $tenant->update([
+            'status' => $newStatus
+        ]);
+
+        // Domain status bhi same
+        Domain::where('tenant_id', $tenant->id)->update([
+            'is_active' => $newStatus
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'status' => $newStatus,
+            'message' => $newStatus ? 'Active' : 'Inactive'
+        ]);
+    }
 
 
 

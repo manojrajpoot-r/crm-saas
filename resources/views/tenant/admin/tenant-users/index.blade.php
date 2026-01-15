@@ -9,10 +9,15 @@
         @if (canAccess('users add'))
              <button id="addBtn" class="btn btn-primary mb-2">Add User</button>
         @endif
+
         <div class="text-center">
             @if (canAccess('users import'))
-                    <a href="{{route('saas.import.users.index')}}"  class="btn btn-primary mb-2">Import</a>
-                @endif
+                    @if(currentTenant())
+                        <a href="{{route('tenant.import.users.index')}}"  class="btn btn-primary mb-2">Import</a>
+                    @else
+                        <a href="{{route('saas.import.users.index')}}"  class="btn btn-primary mb-2">Import</a>
+                    @endif
+            @endif
         </div>
         @include('tenant.includes.universal-datatable')
     </div>

@@ -6,13 +6,13 @@ use App\Models\Import;
 use App\Models\ImportMapping;
 use App\Models\ImportFailedRow;
 use App\Models\User;
+use App\Models\Tenant\TenantUser;
 use Illuminate\Support\Facades\Validator;
-
 
 
 class ImportService {
 
-    public function processChunk($rows, $import)
+    public function processChunk($rows, $import, $type)
     {
         foreach ($rows as $index => $row) {
 
@@ -38,8 +38,16 @@ class ImportService {
                 continue;
             }
 
+
+             if($type === 'tenant'){
+            TenantUser::on('tenant')->create($data);
+        } else {
             User::create($data);
+        }
+
             $import->increment('processed_rows');
         }
     }
+
+
 }

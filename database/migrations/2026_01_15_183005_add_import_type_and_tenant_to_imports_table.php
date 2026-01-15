@@ -11,13 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('import_failed_rows', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('import_id');
-            $table->integer('row_number');
-            $table->json('row_data');
-            $table->text('error');
-            $table->timestamps();
+        Schema::table('imports', function (Blueprint $table) {
+              $table->string('import_type')->after('id');
+            $table->string('tenant_slug')->nullable()->after('import_type');
         });
     }
 
@@ -26,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('import_failed_rows');
+        Schema::table('imports', function (Blueprint $table) {
+              $table->dropColumn(['import_type', 'tenant_slug']);
+        });
     }
 };

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Saas\Admin\import;
+namespace App\Http\Controllers\Tenant\Admin\import;
 
 use App\Http\Controllers\Controller;
 use App\Models\Import;
@@ -104,29 +104,11 @@ use UniversalCrud;
             ->make(true);
     }
 
-    // public function upload(Request $request)
-    // {
-    //     $request->validate(['file'=>'required|mimes:csv,xlsx']);
-
-    //     $file = $request->file('file');
-    //     $filename = time().'_'.$file->getClientOriginalName();
-    //     $file->move(public_path('uploads/imports'), $filename);
-
-    //     $import = Import::create([
-    //         'user_id'=>Auth::id(),
-    //         'file'=>'uploads/imports/'.$filename,
-    //         'status'=>'pending'
-    //     ]);
-
-    //     ProcessUserImportJob::dispatch($import->id)->onQueue('imports');
-
-    //     return response()->json(['status'=>true,'message'=>'import successfully updated','redirect'=>route('')]);
-    // }
-
 
 
 public function upload(Request $request)
 {
+
     $request->validate([
         'file'=>'required|mimes:csv,xlsx',
         'import_type'=>'required',
@@ -151,11 +133,8 @@ public function upload(Request $request)
         $request->tenant
     )->onQueue('imports');
 
-    return response()->json(['status'=>true,'message'=>'Import uploaded successfully!','redirect'=>'saas.import.index']);
+    return response()->json(['status'=>true,'message'=>'Import uploaded successfully!','redirect'=>'tenant.import.index']);
 }
-
-
-
 
 
     public function status($id){

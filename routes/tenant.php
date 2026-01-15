@@ -22,7 +22,7 @@ use App\Http\Controllers\Tenant\Admin\report\ReportController;
 use App\Http\Controllers\Tenant\Admin\chat\ChatController;
 use App\Http\Controllers\Tenant\Admin\comment\CommentController;
 use App\Http\Controllers\Tenant\Admin\team\TeamController;
-
+use App\Http\Controllers\Tenant\Admin\import\ImportController;
 
 
 
@@ -91,6 +91,12 @@ Route::middleware(['tenant'])
             Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
 
 
+            Route::get('import/users', [ImportController::class,'import_page'])->name('import.users.index');
+            Route::get('import', [ImportController::class,'index'])->name('import.index');
+            Route::post('upload', [ImportController::class,'upload'])->name('import.upload');
+            Route::get('imports', [ImportController::class,'list'])->name('imports.list');
+            Route::get('imports/status/{id}', [ImportController::class,'status']);
+            Route::post('imports/retry/{id}', [ImportController::class,'retry']);
 
 
         });

@@ -6,7 +6,7 @@ class Tenant extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
-    protected $fillable = ['id', 'name', 'database'];
+    protected $fillable = ['id', 'name', 'database','slug','status'];
 
     public function domains()
     {
