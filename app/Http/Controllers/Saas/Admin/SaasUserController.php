@@ -12,79 +12,20 @@ class SaasUserController extends Controller
 
     use UniversalCrud;
 
-    public function index()
+    public function index(Request $request)
     {
-        return view('tenant.admin.tenant-users.index');
-    }
+        $users = User::with('role')->latest()->paginate(10);
+        $roles = Role::select('id','name')->get();
+        if ($request->ajax()) {
+            return view('tenant.admin.tenant-users.table', compact('users'))->render();
+        }
 
-    public function list()
-    {
-
-
-        $query = User::with('role')->latest();
-
-        return datatables()->of($query)
-            ->addIndexColumn()
-            ->addColumn('role_id', function ($t) {
-               return $t->role?->name ?? 'N/A';
-
-            })
-            ->addColumn('profile_img', function ($t) {
-            if ($t->profile) {
-                $url = asset('uploads/users/profile/' . $t->profile);
-                return "<img src='{$url}' width='50' height='50' style='border-radius:50%;object-fit:cover'>";
-            }
-
-            return "<img src='".asset('images/default-profile.png')."' width='50' height='50' style='border-radius:50%;object-fit:cover'>";
-        })
-            ->addColumn('status_btn', function ($t) {
-                if (!canAccess('users_status')) {
-                    return "<span class='badge bg-secondary'>No Access</span>";
-                }
-
-                $class = $t->status ? "btn-success" : "btn-danger";
-                $text  = $t->status ? "Active" : "Inactive";
-                $url   = route('saas.users.status', $t->id);
-
-                return "<button class='btn btn-sm {$class} statusBtn' data-url='{$url}'>{$text}</button>";
-            })
-
-             ->addColumn('action', function ($t) {
-
-                 $buttons = '';
-
-                if (canAccess('edit_users')) {
-                    $editUrl = route('saas.users.edit', $t->id);
-                    $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='{$editUrl}'>Edit</button> ";
-                }
-
-            if (canAccess('change_users_password')) {
-                $passwordUrl = route('saas.users.password.change', $t->id);
-                $buttons .= "
-                    <button
-                        class='btn btn-warning btn-sm changePasswordBtn'data-url='{$passwordUrl}' data-id='{$t->id}'>
-                        Change Password
-                    </button>";
-            }
-
-            if (canAccess('delete_users')) {
-                $deleteUrl = route('saas.users.delete', $t->id);
-                $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='{$deleteUrl}'>Delete</button>";
-            }
-
-            return $buttons ?: "<span class='text-muted'>No Action</span>";
-        })
-
-
-            ->rawColumns(['profile_img','status_btn','action'])
-            ->make(true);
+        return view('tenant.admin.tenant-users.index', compact('roles','users'));
     }
 
 
 
-     // ===============================
-    // CREATE / STORE
-    // ===============================
+
 
     public function store(Request $request)
     {
@@ -99,10 +40,6 @@ class SaasUserController extends Controller
         return $this->saveData($request, User::class);
     }
 
-
-  // ===============================
-    // EDIT
-    // ===============================
 public function edit($id)
 {
     $t = User::with('role')->findOrFail($id);
@@ -123,9 +60,7 @@ public function edit($id)
 }
 
 
-    // ===============================
-    // UPDATE
-    // ===============================
+
     public function update(Request $request, $id)
     {
         return $this->saveData($request, User::class, [
@@ -133,26 +68,19 @@ public function edit($id)
         ], $id);
     }
 
-    // ===============================
-    // DELETE
-    // ===============================
+
     public function delete($id)
     {
         return $this->deleteData(User::class, $id);
     }
 
 
-    // ===============================
-    // STATUS
-    // ===============================
+
     public function status($id)
     {
         return $this->toggleStatus(User::class, $id);
     }
 
-    // ===============================
-    // CHANGE PASSWORD
-    // ===============================
     public function changePassword(Request $request, $id)
     {
         return $this->changePasswordTrait($request,User::class,$id);

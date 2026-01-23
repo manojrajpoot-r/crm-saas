@@ -10,55 +10,17 @@ class SaasPermissionController extends Controller
 {
     use UniversalCrud;
 
-    public function index()
+ public function index(Request $request)
     {
-        return view('tenant.admin.permissions.index');
+        $permissions = Permission::latest()->paginate(10);
+
+        if ($request->ajax()) {
+            return view('tenant.admin.permissions.table', compact('permissions'))->render();
+        }
+
+        return view('tenant.admin.permissions.index', compact('permissions'));
     }
 
-    public function list()
-    {
-        $query = Permission::latest();
-
-        return datatables()->of($query)
-            ->addIndexColumn()
-
-                 ->addColumn('status_btn', function ($t) {
-
-                    if (!canAccess('change_permissions_status')) {
-                        return '-';
-                    }
-
-                    $class = $t->status ? 'btn-success' : 'btn-danger';
-                    $text  = $t->status ? 'Active' : 'Inactive';
-                    $url   = route('saas.permissions.status', $t->id);
-
-                    return "<button class='btn btn-sm {$class} statusBtn' data-url='{$url}'>{$text}</button>";
-                })
-
-
-                 ->addColumn('action', function ($t) {
-
-                    $buttons = '';
-
-                    if (canAccess('edit_permissions')) {
-                        $editUrl = route('saas.permissions.edit', $t->id);
-                        $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='{$editUrl}'>Edit</button> ";
-                    }
-
-                    if (canAccess('delete_permissions')) {
-                        $deleteUrl = route('saas.permissions.delete', $t->id);
-                        $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='{$deleteUrl}'>Delete</button> ";
-                    }
-
-                    return $buttons ?: '-';
-                })
-
-            ->rawColumns(['status_btn', 'action'])
-            ->make(true);
-    }
-     // ===============================
-    // CREATE / STORE
-    // ===============================
 
     public function store(Request $request)
     {
@@ -66,9 +28,6 @@ class SaasPermissionController extends Controller
     }
 
 
-    // ===============================
-    // EDIT
-    // ===============================
     public function edit($id)
     {
         $t = Permission::find($id);
@@ -79,29 +38,19 @@ class SaasPermissionController extends Controller
         return response()->json($json);
     }
 
-    // ===============================
-    // UPDATE
-    // ===============================
+
 
     public function update(Request $request, $id)
     {
         return $this->saveData($request, Permission::class, $id);
     }
 
-
-
-    // ===============================
-    // DELETE
-    // ===============================
     public function delete($id)
     {
         return $this->deleteData(Permission::class,$id);
     }
 
 
-    // ===============================
-    // STATUS
-    // ===============================
     public function status($id)
     {
         return $this->toggleStatus(Permission::class, $id);

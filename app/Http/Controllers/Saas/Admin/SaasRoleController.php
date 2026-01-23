@@ -10,68 +10,18 @@ class SaasRoleController extends Controller
 {
      use UniversalCrud;
 
-    public function index()
+    public function index(Request $request)
     {
+        $roles = Role::latest()->paginate(10);
+
+        if ($request->ajax()) {
+            return view('tenant.admin.roles.table', compact('roles'))->render();
+        }
+
         return view('tenant.admin.roles.index');
     }
 
-    public function list()
-    {
-        $query = Role::latest();
 
-        return datatables()->of($query)
-            ->addIndexColumn()
-
-          ->addColumn('status_btn', function ($t) {
-            if (!canAccess('change_roles_status')) {
-                return "<span class='badge bg-secondary'>No Access</span>";
-            }
-
-            $class = $t->status ? 'btn-success' : 'btn-danger';
-            $text  = $t->status ? 'Active' : 'Inactive';
-            $url   = route('saas.roles.status', $t->id);
-
-            return "<button class='btn btn-sm {$class} statusBtn' data-url='{$url}'>{$text}</button>";
-        })
-
-
-            ->addColumn('action', function ($t) {
-
-                $buttons = '';
-
-                if (canAccess('edit_roles')) {
-                    $buttons .= "<button class='btn btn-info btn-sm editBtn'
-                                    data-url='".route('saas.roles.edit', $t->id)."'>
-                                    Edit
-                                </button> ";
-                }
-
-                if (canAccess('delete_roles')) {
-                    $buttons .= "<button class='btn btn-danger btn-sm deleteBtn'
-                                    data-url='".route('saas.roles.delete', $t->id)."'>
-                                    Delete
-                                </button> ";
-                }
-
-                if (canAccess('assign_roles_permissions')) {
-                    $buttons .= "<a href='".route('saas.roles.permissions', $t->id)."'
-                                    class='btn btn-primary btn-sm'>
-                                    Permissions
-                                </a> ";
-                }
-
-                return $buttons ?: "<span class='badge bg-secondary'>No Action</span>";
-            })
-
-
-            ->rawColumns(['status_btn','action'])
-            ->make(true);
-    }
-
-
-     // ===============================
-    // CREATE / STORE
-    // ===============================
 
     public function store(Request $request)
     {
@@ -80,9 +30,7 @@ class SaasRoleController extends Controller
     }
 
 
-    // ===============================
-    // EDIT
-    // ===============================
+
     public function edit($id)
     {
         $t = Role::find($id);
@@ -93,9 +41,6 @@ class SaasRoleController extends Controller
         return response()->json($json);
     }
 
-    // ===============================
-    // UPDATE
-    // ===============================
     public function update(Request $request, $id)
     {
         return $this->saveData($request, Role::class, [
@@ -103,9 +48,7 @@ class SaasRoleController extends Controller
         ], $id);
     }
 
-    // ===============================
-    // DELETE
-    // ===============================
+
     public function delete($id)
     {
         return $this->deleteData(
@@ -116,10 +59,6 @@ class SaasRoleController extends Controller
         );
     }
 
-
-    // ===============================
-    // STATUS
-    // ===============================
     public function status($id)
     {
         return $this->toggleStatus(Role::class, $id);
