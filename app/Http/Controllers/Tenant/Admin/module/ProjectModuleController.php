@@ -12,65 +12,22 @@ class ProjectModuleController extends Controller
 {
     use UniversalCrud;
 
-    public function index(Request $request)
-    {
-        $id =$request->id;
-        $project = Project::findOrFail($id);
-        return view('tenant.admin.modules.index', compact('project'));
+   public function index(Request $request)
+{
+    $id = base64_decode($request->id);
+    $project = Project::findOrFail($id);
+
+    $modules = ProjectModule::where('project_id', $project->id)
+        ->latest()
+        ->paginate(10);
+
+    if ($request->ajax()) {
+        return view('tenant.admin.modules.table', compact('modules'))->render();
     }
 
+    return view('tenant.admin.modules.index', compact('project','modules'));
+}
 
-
-    public function list(Request $request)
-    {
-
-         $projectId = $request->project_id;
-        $query = ProjectModule::where('project_id', $projectId)->latest();
-
-        return datatables()->of($query)
-            ->addIndexColumn()
-            ->addColumn('created_at', function($item){
-                    return $this->formatDate($item->created_at);
-                })
-
-              ->addColumn('start_date', function($item){
-                    return $this->formatDate($item->created_at);
-                })
-                  ->addColumn('end_date', function($item){
-                    return $this->formatDate($item->created_at);
-                })
-            ->addColumn('status_btn', function ($t) {
-                if (!canAccess('module status')) {
-                    return "<span class='badge bg-secondary'>No Access</span>";
-                }
-
-                $class = $t->status ? "btn-success" : "btn-danger";
-                $text = $t->status ? "Active" : "Inactive";
-                $url = route('tenant.modules.status',  $t->id);
-
-                return "<button class='btn btn-sm $class statusBtn' data-url='$url'>$text</button>";
-            })
-
-            ->addColumn('action', function ($t) {
-                $buttons = '';
-
-                if (canAccess('module edit')) {
-                    $editUrl = route('tenant.modules.edit', $t->id);
-                    $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='$editUrl'>Edit</button> ";
-                }
-
-                if (canAccess('module delete')) {
-                    $deleteUrl = route('tenant.modules.delete',  $t->id);
-                    $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='$deleteUrl'>Delete</button> ";
-                }
-
-
-                return $buttons ?: 'No Action';
-            })
-
-            ->rawColumns(['status_btn','action'])
-            ->make(true);
-    }
 
      // ===============================
     // CREATE / STORE
@@ -88,12 +45,29 @@ class ProjectModuleController extends Controller
     // ===============================
     public function edit($id)
     {
-
         $t = ProjectModule::find($id);
-         $json=[
+
+        $json = [
             "fields" => [
-                    "name" => ["type"=>"text", "value"=>$t->name],
-            ]];
+                "title" => [
+                    "type"  => "text",
+                    "value" => $t->title
+                ],
+                "notes" => [
+                    "type"  => "textarea",
+                    "value" => $t->notes
+                ],
+                 "start_date" => [
+                    "type"  => "text",
+                    "value" => $t->start_date
+                ],
+                 "end_date" => [
+                    "type"  => "text",
+                    "value" => $t->end_date
+                ],
+            ]
+        ];
+
         return response()->json($json);
     }
 

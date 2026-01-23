@@ -42,10 +42,11 @@
             <div id="userList" class="list-group shadow"></div>
 
         </div>
-
+        @if (canAccess('create_teams'))
         <button type="submit" class="btn btn-primary mt-3 w-100" style="margin-bottom:15px;">
             Add To Project
         </button>
+        @endif
     </form>
 
 
@@ -54,20 +55,18 @@
             <div class="row" id="teamGrid">
                 <!-- User Card -->
             <div class="row">
-            @foreach($project->teamMembers as $user)
-
+           @foreach($project->teamMembers as $employee)
                 @php
-                    $employee = $user->employee;
-                    $department = $employee?->department?->name ?? 'N/A';
-                    $designation = $employee?->designation?->name ?? 'N/A';
+                    $department  = $employee->department?->name ?? 'N/A';
+                    $designation = $employee->designation?->name ?? 'N/A';
                 @endphp
 
                 <div class="col-md-4 mb-4">
                     <div class="user-card text-center p-3 shadow-sm rounded">
 
                         <img
-                            src="{{ $user->profile
-                                    ? asset('uploads/tenantusers/profile/'.$user->profile)
+                            src="{{ $employee->profile
+                                    ? asset('uploads/employees/profile/'.$employee->profile)
                                     : asset('images/default-profile.png')
                                 }}"
                             width="80"
@@ -75,7 +74,10 @@
                             style="border-radius:50%;object-fit:cover"
                         >
 
-                        <h6 class="mt-2">{{ $user->name }}</h6>
+                        <h6 class="mt-2">
+                            {{ $employee->first_name }} {{ $employee->last_name }}
+                        </h6>
+
                         <small>{{ $designation }}</small><br>
                         <small class="text-muted">{{ $department }}</small>
 
@@ -83,6 +85,7 @@
                 </div>
 
             @endforeach
+
             </div>
 
 
@@ -94,7 +97,7 @@
 
         <!-- RIGHT: CLIENT -->
       <div class="col-md-4">
-    <h5 class="fw-bold mb-3">Add your client</h5>
+    {{-- <h5 class="fw-bold mb-3">Add your client</h5> --}}
 
     {{-- <div class="input-group mb-2">
         <span class="input-group-text"><i class="fa fa-user"></i></span>
@@ -108,29 +111,30 @@
 
     <div class="mt-4">
 
-        @forelse($project->clients as $client)
+      @forelse($project->clients as $client)
 
             <div class="client-card mb-3">
                 <div class="dots">⋮</div>
 
                 <img
                     src="{{ $client->profile
-                        ? asset('uploads/tenantusers/profile/'.$client->profile)
-                        : 'https://ui-avatars.com/api/?name='.urlencode($client->name).'&background=0D8ABC&color=fff'
+                        ? asset('uploads/employees/profile/'.$client->profile)
+                        : 'https://ui-avatars.com/api/?name='.urlencode($client->first_name.' '.$client->last_name).'&background=0D8ABC&color=fff'
                     }}"
                 >
 
-                <h6>{{ $client->name }}</h6>
-                <small>{{ $client->email }}</small>
+                <h6>{{ $client->first_name }} {{ $client->last_name }}</h6>
+                <small>{{ $client->corporate_email ?? $client->personal_email }}</small>
 
                 <div class="status">
-                    {{ $client->is_active ? 'Active' : 'Inactive' }}
+                    {{ $client->status=='1' ? 'Active' : 'Inactive' }}
                 </div>
             </div>
 
         @empty
             <p class="text-muted">No clients added to this project</p>
         @endforelse
+
 
     </div>
 </div>

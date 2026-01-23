@@ -13,8 +13,6 @@ use App\Http\Controllers\Saas\Admin\auth\TwoFactorController;
 use App\Http\Controllers\Saas\Admin\import\ImportController;
 use App\Http\Controllers\Front\face\FaceController;
 use App\Http\Controllers\Front\HomeController;
-
-Route::get('/', [HomeController::class, 'index'])->name('index');
     // Route::get('/login', [HomeController::class, 'loginPage'])->name('login');
     // Route::post('/login', [HomeController::class, 'login'])->name('user.login.submit');
 
@@ -26,23 +24,20 @@ Route::get('/', [HomeController::class, 'index'])->name('index');
     // Route::get('facefetchdata', [FaceController::class, 'facefetchdata'])->name('face.fetch.data');
 
 
+
+    // Route::get('/2fa', [TwoFactorController::class,'index'])->name('2fa.index');
+    // Route::post('/2fa/send', [TwoFactorController::class,'send']);
+    // Route::post('/2fa/verify', [TwoFactorController::class,'verify']);
+    // Route::post('/2fa/recovery', [TwoFactorController::class,'verifyRecoveryCode']);
+
+
+Route::get('/', [HomeController::class, 'index'])->name('index');
 Route::domain('crm.saas.local')
     ->name('saas.')
     ->prefix('saas')
     ->group(function () {
     Route::get('/login', [SaasAuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [SaasAuthController::class, 'login'])->name('login.submit');
-
-
-
-
-    Route::get('/2fa', [TwoFactorController::class,'index'])->name('2fa.index');
-    Route::post('/2fa/send', [TwoFactorController::class,'send']);
-    Route::post('/2fa/verify', [TwoFactorController::class,'verify']);
-    Route::post('/2fa/recovery', [TwoFactorController::class,'verifyRecoveryCode']);
-
-
-
     Route::middleware(['auth:web'])->group(function () {
 
             Route::get('/dashboard', [SaasDashboardController::class, 'index'])->name('dashboard.index');

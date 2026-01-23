@@ -27,7 +27,7 @@
                         { data: 'action', title: 'Action', orderable: false, searchable: false }
                     ];
 
-            let listUrl = "{{ currentGuard() === 'saas'? route('saas.imports.list'): route('tenant.imports.list', ['tenant' => currentTenant()]) }}";
+            let listUrl = "{{ currentGuard() === 'saas'? route('saas.imports.list'): tenantRoute('imports.list') }}";
 
                                 loadDataTable(columns,listUrl);
 

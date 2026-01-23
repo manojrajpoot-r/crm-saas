@@ -37,50 +37,44 @@ class SaasUserController extends Controller
 
             return "<img src='".asset('images/default-profile.png')."' width='50' height='50' style='border-radius:50%;object-fit:cover'>";
         })
-          ->addColumn('status_btn', function ($t) {
-
-                if (!canAccess('users status')) {
+            ->addColumn('status_btn', function ($t) {
+                if (!canAccess('users_status')) {
                     return "<span class='badge bg-secondary'>No Access</span>";
                 }
 
                 $class = $t->status ? "btn-success" : "btn-danger";
-                $text = $t->status ? "Active" : "Inactive";
-                $url = route('saas.users.status', $t->id);
+                $text  = $t->status ? "Active" : "Inactive";
+                $url   = route('saas.users.status', $t->id);
 
-                return "<button class='btn btn-sm $class statusBtn' data-url='$url'>$text</button>";
+                return "<button class='btn btn-sm {$class} statusBtn' data-url='{$url}'>{$text}</button>";
             })
 
+             ->addColumn('action', function ($t) {
 
-           ->addColumn('action', function ($t) {
+                 $buttons = '';
 
-                $buttons = '';
-
-                if (canAccess('users edit')) {
+                if (canAccess('edit_users')) {
                     $editUrl = route('saas.users.edit', $t->id);
-                    $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='$editUrl'>Edit</button> ";
+                    $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='{$editUrl}'>Edit</button> ";
                 }
 
-                if (canAccess('users change password')) {
-
-                    $passwordUrl = route('saas.users.password.change', [
-                        'id' => $t->id
-                    ]);
-
-                    $buttons .= "<button
-                        class='btn btn-warning btn-sm changePasswordBtn'
-                        data-url='{$passwordUrl}'
-                        data-id='{$t->id}'
-                    >
+            if (canAccess('change_users_password')) {
+                $passwordUrl = route('saas.users.password.change', $t->id);
+                $buttons .= "
+                    <button
+                        class='btn btn-warning btn-sm changePasswordBtn'data-url='{$passwordUrl}' data-id='{$t->id}'>
                         Change Password
-                    </button> ";
-                }
-                if (canAccess('users delete')) {
-                    $deleteUrl = route('saas.users.delete', $t->id);
-                    $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='$deleteUrl'>Delete</button>";
-                }
+                    </button>";
+            }
 
-                return $buttons ?: 'No Action';
-            })
+            if (canAccess('delete_users')) {
+                $deleteUrl = route('saas.users.delete', $t->id);
+                $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='{$deleteUrl}'>Delete</button>";
+            }
+
+            return $buttons ?: "<span class='text-muted'>No Action</span>";
+        })
+
 
             ->rawColumns(['profile_img','status_btn','action'])
             ->make(true);

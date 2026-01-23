@@ -23,13 +23,13 @@ class DepartmentController extends Controller
             ->addIndexColumn()
 
             ->addColumn('status_btn', function ($t) {
-                if (!canAccess('departments status')) {
+                if (!canAccess('status_hrs')) {
                     return '-';
                 }
 
                 $class = $t->status ? "btn-success" : "btn-danger";
                 $text  = $t->status ? "Active" : "Inactive";
-                $url   = route('tenant.departments.status', ['tenant' => currentTenant(), 'id' => $t->id]);
+                $url   = tenantRoute('departments.status',$t->id);
 
                 return "<button class='btn btn-sm $class statusBtn' data-url='$url'>$text</button>";
             })
@@ -37,13 +37,13 @@ class DepartmentController extends Controller
             ->addColumn('action', function ($t) {
                 $buttons = '';
 
-                if (canAccess('departments edit')) {
-                    $editUrl = route('tenant.departments.edit',$t->id);
+                if (canAccess('edit_hrs')) {
+                    $editUrl = tenantRoute('departments.edit',$t->id);
                     $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='$editUrl'>Edit</button> ";
                 }
 
-                if (canAccess('departments delete')) {
-                    $deleteUrl = route('tenant.departments.delete', $t->id);
+                if (canAccess('delete_hrs')) {
+                    $deleteUrl = tenantRoute('departments.delete', $t->id);
                     $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='$deleteUrl'>Delete</button> ";
                 }
 
@@ -55,20 +55,12 @@ class DepartmentController extends Controller
     }
 
 
-
-     // ===============================
-    // CREATE / STORE
-    // ===============================
-
     public function store(Request $request)
     {
         return $this->saveData($request, Department::class);
     }
 
 
-    // ===============================
-    // EDIT
-    // ===============================
     public function edit($id)
     {
         $t = Department::find($id);
@@ -81,29 +73,17 @@ class DepartmentController extends Controller
         return response()->json($json);
     }
 
-    // ===============================
-    // UPDATE
-    // ===============================
 
     public function update(Request $request, $id)
     {
         return $this->saveData($request, Department::class, $id);
     }
 
-
-
-    // ===============================
-    // DELETE
-    // ===============================
     public function delete($id)
     {
         return $this->deleteData(Department::class,$id);
     }
 
-
-    // ===============================
-    // STATUS
-    // ===============================
     public function status($id)
     {
         return $this->toggleStatus(Department::class, $id);

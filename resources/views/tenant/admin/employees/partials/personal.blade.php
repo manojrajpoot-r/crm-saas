@@ -5,6 +5,12 @@
 
                     <div class="card-body">
                         <div class="row g-3">
+
+                            <div class="col-md-6">
+                                <label class="form-label">Profile *</label>
+                                <input type="file" class="form-control" name="profile"
+                                    value="{{ old('profile', $employee->profile ?? '') }}">
+                            </div>
                             <div class="col-md-6">
                                 <label class="form-label">First Name *</label>
                                 <input type="text" class="form-control" name="first_name"

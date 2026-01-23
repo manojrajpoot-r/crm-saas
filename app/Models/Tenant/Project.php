@@ -23,12 +23,11 @@ class Project extends BaseTenantModel
         'status',
         'remarks',
         'is_finished',
-        'is_archived'
+        'is_archived',
+        'last_updated',
     ];
 
     protected $casts = [
-        'created_by' => 'array',
-        'archived_by' => 'array',
         'completed_by' => 'integer',
         'start_date' => 'date',
         'end_date' => 'date',
@@ -54,42 +53,49 @@ class Project extends BaseTenantModel
         return trim($actual . '<br>' . $created);
     }
 
-    // Single user
+
     public function createdBy()
     {
         return $this->belongsTo(TenantUser::class, 'created_by');
     }
 
 
+
     public function teamMembers()
     {
-        return $this->belongsToMany(
-            TenantUser::class,
-            'project_team_members',
-            'project_id',
-            'user_id'
-        );
+        return $this->belongsToMany(Employee::class,'project_team_members', 'project_id', 'employee_id');
     }
 
 
     public function clients()
     {
-        return $this->belongsToMany(
-            TenantUser::class,
-            'project_clients',
-            'project_id',
-            'client_id'
-        );
+        return $this->belongsToMany(Employee::class, 'project_clients','project_id', 'client_id');
     }
-
-
-
-
 
 
     public function documents()
     {
-        return $this->hasMany(ProjectDocument::class);
+        return $this->morphMany(Document::class, 'documentable');
     }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function getCreatorProfileAttribute()
+{
+    if(!$this->createdBy) return asset('images/default-profile.png');
+
+    return $this->createdBy->profile
+        ? asset('uploads/tenantusers/profile/'.$this->createdBy->profile)
+        : asset('images/default-profile.png');
+}
+
+public function getStatusLabelAttribute()
+{
+    return ucwords(str_replace('_',' ',$this->status));
+}
+
 
 }

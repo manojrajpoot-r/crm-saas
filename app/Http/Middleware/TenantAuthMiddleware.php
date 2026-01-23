@@ -18,44 +18,45 @@ class TenantAuthMiddleware
         // }
 
         // SUPER ADMIN (SAAS)
-        if (Auth::guard('web')->check()) {
-            $user = Auth::guard('web')->user();
-                if (!$user) {
-                    return redirect()->route('saas.login');
-                }
+    //     if (Auth::guard('web')->check()) {
+    //         $user = Auth::guard('web')->user();
+    //             if (!$user) {
+    //                 return redirect()->route('saas.login');
+    //             }
 
-            return $next($request);
-        }
+    //         return $next($request);
+    //     }
 
 
 
-        // TENANT USER
-        $user = Auth::guard('tenant')->user();
 
-        if (!$user) {
-            return redirect()->route('tenant.login');
-        }
+    //     $user = Auth::guard('tenant')->user();
 
-        if (strtolower($user->role->name) === 'super-admin') {
-            return $next($request);
-        }
+    //     if (!$user) {
+    //         return redirect()->route('tenant.login');
+    //     }
 
-        if (!empty($permissions)) {
-            $normalize = fn($str) => strtolower(str_replace(' ', '', trim($str)));
+    //     if ($user->master == 5) {
+    //         return $next($request);
+    //     }
 
-            $rolePermissions = array_map(
-                $normalize,
-                $user->role->permissions->pluck('group')->toArray()
-            );
+    //     if (!empty($permissions)) {
+    //         $normalize = fn($str) => strtolower(str_replace(' ', '', trim($str)));
 
-            foreach ($permissions as $permission) {
-                if (!in_array($normalize($permission), $rolePermissions)) {
-                    abort(403);
-                }
-            }
-        }
+    //         $rolePermissions = array_map(
+    //             $normalize,
+    //             $user->role->permissions->pluck('group')->toArray()
+    //         );
 
-        return $next($request);
+    //         foreach ($permissions as $permission) {
+    //             if (!in_array($normalize($permission), $rolePermissions)) {
+    //                 abort(403);
+    //             }
+    //         }
+    //     }
+
+    //     return $next($request);
     }
+
 
 }

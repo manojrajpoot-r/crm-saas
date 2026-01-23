@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('comment_files', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('comment_id')->constrained()->cascadeOnDelete();
-            $table->string('file');
-            $table->timestamps();
+        Schema::table('leave_types', function (Blueprint $table) {
+            $table->bigInteger('status')->default(1)->after('max_days');
         });
     }
 
@@ -24,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('comment_files');
+        Schema::table('leave_types', function (Blueprint $table) {
+            //
+        });
     }
 };

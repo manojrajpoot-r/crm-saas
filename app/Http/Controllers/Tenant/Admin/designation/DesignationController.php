@@ -11,58 +11,19 @@ class DesignationController extends Controller
 {
          use UniversalCrud;
 
-    public function index()
+    public function index(Request $request)
     {
-        return view('tenant.admin.designations.index');
-    }
+       $departmentList = Department::select('id','name')->where('status','1')->get();
+        $designations = Designation::with('department')->latest()->paginate(10);
 
-    public function list()
-    {
-        $query = Designation::latest();
+        if ($request->ajax()) {
+            return view('tenant.admin.designations.table', compact('designations'))->render();
+        }
 
-        return datatables()->of($query)
-            ->addIndexColumn()
-            ->addColumn('department_id', function ($t) {
-               return $t->department?->name ?? 'N/A';
-
-            })
-            ->addColumn('status_btn', function ($t) {
-                if (!canAccess('designations status')) {
-                    return '-';
-                }
-
-                $class = $t->status ? "btn-success" : "btn-danger";
-                $text  = $t->status ? "Active" : "Inactive";
-                $url   = route('tenant.designations.status', ['tenant' => currentTenant(), 'id' => $t->id]);
-
-                return "<button class='btn btn-sm $class statusBtn' data-url='$url'>$text</button>";
-            })
-
-            ->addColumn('action', function ($t) {
-                $buttons = '';
-
-                if (canAccess('designations edit')) {
-                    $editUrl = route('tenant.designations.edit',  $t->id);
-                    $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='$editUrl'>Edit</button> ";
-                }
-
-                if (canAccess('Designations delete')) {
-                    $deleteUrl = route('tenant.designations.delete', $t->id);
-                    $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='$deleteUrl'>Delete</button> ";
-                }
-
-                return $buttons ?: '-';
-            })
-
-            ->rawColumns(['status_btn', 'action'])
-            ->make(true);
+        return view('tenant.admin.designations.index', compact('designations','departmentList'));
     }
 
 
-
-     // ===============================
-    // CREATE / STORE
-    // ===============================
 
     public function store(Request $request)
     {
@@ -70,14 +31,11 @@ class DesignationController extends Controller
     }
 
 
-    // ===============================
-    // EDIT
-    // ===============================
     public function edit($id)
     {
         $t = Designation::find($id);
         $department = Department::get();
-   $json=[
+     $json=[
         "fields" => [
             "name" => ["type"=>"text", "value"=>$t->name],
             "department_id" => [
@@ -91,9 +49,7 @@ class DesignationController extends Controller
         return response()->json($json);
     }
 
-    // ===============================
-    // UPDATE
-    // ===============================
+
 
     public function update(Request $request, $id)
     {
@@ -101,19 +57,11 @@ class DesignationController extends Controller
     }
 
 
-
-    // ===============================
-    // DELETE
-    // ===============================
     public function delete($id)
     {
         return $this->deleteData(Designation::class,$id);
     }
 
-
-    // ===============================
-    // STATUS
-    // ===============================
     public function status($id)
     {
         return $this->toggleStatus(Designation::class, $id);

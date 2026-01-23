@@ -23,6 +23,7 @@ class Employee extends BaseTenantModel
         'report_to',
         'join_date',
         'status',
+        'profile',
     ];
 
 
@@ -51,10 +52,7 @@ class Employee extends BaseTenantModel
         return $this->hasOne(EmployeeAddress::class);
     }
 
-    public function reports()
-    {
-        return $this->hasMany(Report::class);
-    }
+
 
 
     public function personalInfo()

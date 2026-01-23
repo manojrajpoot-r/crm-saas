@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('tenant_id')->index();
             $table->string('name');
               $table->tinyInteger('status')->default(1);
             $table->timestamps();

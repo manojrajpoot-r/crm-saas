@@ -1,23 +1,26 @@
 @extends('tenant.layouts.tenant_master')
 
 @section('content')
-<style>
-     .select2-container { width: 100% !important; }
-</style>
 <div class="main-panel">
     <div class="content">
+   @include('tenant.includes.universal-modal')
+       {{-- ADD BUTTON --}}
+        @if(canAccess('create_users'))
+            <button id="addBtn" class="btn btn-primary mb-3">
+                Add Project
+            </button>
 
-        @include('tenant.includes.universal-modal')
-        @include('tenant.includes.universal-form')
-
-        @if (canAccess('projects add'))
-             <button id="addBtn" class="btn btn-primary mb-2">Add Project</button>
         @endif
-        @include('tenant.includes.universal-datatable')
+           @include('tenant.includes.universal-pagination', [
+            'url' => tenantRoute('projects.list'),
+            'wrapperId' => 'projectsTable',
+            'content' => view('tenant.admin.projects.table', [
+            'projects' => \App\Models\Tenant\Project::latest()->paginate(10)
+            ])
+        ])
+
     </div>
 </div>
-<!-- Multi Select -->
-
 @endsection
 
 @push('scripts')
@@ -27,69 +30,43 @@
 
         $(document).ready(function () {
 
-            let columns = [
-                { data: 'DT_RowIndex', title: '#', orderable: false, searchable: false },
-                { data: 'name', title: 'Project Name' },
-                { data: 'created_by', title: 'Created At' },
-                { data: 'dates',title: 'Date'},
-                { data: 'dead_line', title: 'Dead Line' },
-                { data: 'status_btn', title: 'Status', orderable: false, searchable: false },
-                { data: 'action', title: 'Action', orderable: false, searchable: false }
-            ];
+             $("#addBtn").click(function () {
 
-           let listUrl = "{{ currentGuard() === 'saas'? route('saas.projects.list'): route('tenant.projects.list', ['tenant' => currentTenant()]) }}";
+                $("#universalForm")[0].reset();
+                $("#modalBody").empty();
 
-            loadDataTable(columns, listUrl);
+                let storeUrl = "{{ tenantRoute('projects.store') }}";
 
-            // =======================
-            // ADD BUTTON
-            // =======================
-            $("#addBtn").click(function() {
-                let userlist = "{{ currentGuard() === 'saas'? route('saas.users.list'): route('tenant.users.list', ['tenant' => currentTenant()]) }}";
-                $.get(userlist, function(users) {
-                let data = users.data;
-                let userOptions = data.map(u => `${u.id}|${u.name}`).join(',');
+                $("#universalForm").attr("action", storeUrl);
 
-                    let statusOptions = "created|Created,working|Working,on_hold|On Hold,finished|Finished,maintenance|Maintenance,delay|Delay,handover|Handover,discontinued|Discontinued,inactive|Inactive";
-                    let typeOptions = "fixed|Fixed,product|Product";
+                 const EMPLOYEES = @json($employees);
+                   let employeeOptions = EMPLOYEES.map(a => `${a.id}|${a.first_name} ${a.last_name}` ).join(',');
 
                     let fields = {
-                        type: "select:" + typeOptions,
+                        type: "select:fixed|Fixed,product|Product,hourly|Hourly,other|Other,service|Service,maintenance|Maintenance",
                         name: "text",
                         description: "textarea",
                         start_date: "date",
                         end_date: "date",
-                        actual_start_date: "date",
-                        total_days: "number",
-                        created_by: "select:" + userOptions,
-                        user_id: "multiselect:" + userOptions,
-                        client_id: "multiselect:" + userOptions,
-                        status: "select:" + statusOptions,
-                        remarks: "text",
-
+                        total_days: { type: "number", readonly: true },
+                        status: "select:created|Created,working|Working,completed|Completed,on_hold|On Hold,cancelled|Cancelled,pending|Pending,closed|Closed,resolved|Resolved,reopened|Reopened,in_progress|In Progress",
+                        employee_id: "multiselect:" + employeeOptions,
+                        client_id: "multiselect:" + employeeOptions,
+                        remarks: "text"
                     };
 
+                    loadForm(fields, "Add Project");
+                       addDocumentField('#modalBody');
 
-
-                let usersstore = "{{ currentGuard() === 'saas'? route('saas.projects.store'): route('tenant.projects.store', ['tenant' => currentTenant()]) }}";
-                $("#universalForm").attr("action", usersstore);
-                loadForm(fields, "Add Project");
-                  // summer note
-                 initSummernote('#globalModal');
-                // multiple files
-                 addDocumentField();
+                    $('#globalModal').off('shown.bs.modal').on('shown.bs.modal', function () {
+                        initModalPlugins();
+                    });
                 });
             });
-        });
-
-
-
-
 
 
 
     </script>
-
 
 @endpush
 

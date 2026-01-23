@@ -23,6 +23,3 @@ class Permission extends Model
         ];
     }
 }
-
-
-

@@ -1,23 +1,33 @@
-<div class="modal fade" style="" id="globalModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
-  <div class="modal-dialog">
+<div class="modal fade" id="globalModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
     <div class="modal-content">
+
       <form id="universalForm" method="POST" enctype="multipart/form-data">
+
         <div class="modal-header">
           <h5 class="modal-title" id="modalTitle">Modal Title</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
+
         <div class="modal-body" id="modalBody">
-          <!-- Form fields dynamically added here -->
-           <div id="profilePreview" class="mt-2 text-center"></div>
+          <div id="profilePreview" class="mt-2 text-center"></div>
         </div>
+
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary" id="formSubmitBtn">Save</button>
+          <button type="submit" id="formSubmitBtn" class="btn btn-primary">
+                <span class="btn-text">Save</span>
+                <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+            </button>
+
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         </div>
+
       </form>
+
     </div>
   </div>
 </div>
+
 
 
 <div class="modal fade" id="globalStatusModal"  tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">>
@@ -45,43 +55,18 @@
 
 
 
-<div class="modal fade" id="openModalBody" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+<div class="modal fade" id="commonDetailsModal">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-
             <div class="modal-header">
-                <h5 class="modal-title">Comments</h5>
+                <h5 class="modal-title" id="commonModalTitle"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
-            <div class="modal-body" id="commentsModalBody">
-                <div class="text-center text-muted">
-                    Loading comments...
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    Close
-                </button>
-            </div>
-
+            <div class="modal-body" id="commonModalBody"></div>
         </div>
     </div>
 </div>
 
 
-<!-- Modal -->
-<div class="modal fade" id="postDetailsModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 id="postModalTitle" class="modal-title"></h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body" id="postModalBody">
-        Loading...
-      </div>
-    </div>
-  </div>
-</div>
+

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Tenant\Admin\team;
 
 use App\Http\Controllers\Controller;
+use App\Models\Tenant\Employee;
 use Illuminate\Http\Request;
 use App\Models\Tenant\Project;
 use App\Models\Tenant\TenantUser;
@@ -12,21 +13,21 @@ class TeamController extends Controller
 {
    public function index(Request $request)
 {
+    $id = base64_decode($request->id);
     $project = Project::with([
-        'teamMembers.employee.department',
-        'teamMembers.employee.designation',
-        'clients'
+    'teamMembers.department',
+    'teamMembers.designation',
+    'clients'
+])->findOrFail($id);
 
-    ])->findOrFail($request->id);
 
     return view('tenant.admin.team.index', compact('project'));
 }
 
 public function searchUsers(Request $request)
 {
-    return TenantUser::where('name', 'like', "%{$request->q}%")
-        ->select('id','name','email','profile')
-        ->limit(10)
+    return Employee::where('first_name', 'like', "%{$request->q}%")->orWhere('last_name', 'like', "%{$request->q}%")
+        ->select('id','first_name','last_name','profile')
         ->get();
 }
 
@@ -35,10 +36,15 @@ public function assignTeam(Request $request)
 
     $project = Project::findOrFail($request->project_id);
 
-    $project->teamMembers()->syncWithoutDetaching($request->user_id);
+    $project->teamMembers()
+        ->syncWithoutDetaching($request->employee_id);
 
-    return response()->json(['success' => true]);
+    return response()->json([
+        'success' => true,
+        'message' => 'Team members assigned successfully'
+    ]);
 }
+
 
 
 

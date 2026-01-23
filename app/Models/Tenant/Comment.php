@@ -1,25 +1,29 @@
 <?php
-
 namespace App\Models\Tenant;
 
 use Illuminate\Database\Eloquent\Model;
 
 class Comment extends BaseTenantModel
 {
-    protected $fillable = ['comment','commentable_type','commentable_id', 'user_id'];
+    protected $fillable = [
+        'project_id',
+        'uploaded_by',
+        'comment'
+    ];
 
-    public function commentable()
+    public function project()
     {
-        return $this->belongsTo(Post::class);
+        return $this->belongsTo(Project::class);
     }
 
     public function user()
     {
-        return $this->belongsTo(TenantUser::class);
+        return $this->belongsTo(TenantUser::class, 'uploaded_by');
     }
 
     public function documents()
     {
-        return $this->hasMany(CommentFile::class);
+        return $this->morphMany(Document::class, 'documentable');
     }
+
 }

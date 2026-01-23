@@ -3,51 +3,40 @@
 @section('content')
 <div class="main-panel">
     <div class="content">
-        @include('tenant.includes.universal-modal')
-        @include('tenant.includes.universal-form')
+   @include('tenant.includes.universal-modal')
+       {{-- ADD BUTTON --}}
+        @if(canAccess('create_departments'))
+            <button id="addBtn" class="btn btn-primary mb-3">
+                Add Department
+            </button>
 
-         @if (canAccess('departments add'))
-        <button id="addBtn" class="btn btn-primary mb-2">Add Department</button>
         @endif
-        @include('tenant.includes.universal-datatable')
+           @include('tenant.includes.universal-pagination', [
+            'url' => tenantRoute('departments.list'),
+            'wrapperId' => 'departmentsTable',
+            'content' => view('tenant.admin.departments.table', [
+                'departments' => \App\Models\Tenant\Department::latest()->paginate(10)
+            ])
+        ])
+
     </div>
 </div>
-
-
 @endsection
-
 @push('scripts')
     @include('tenant.includes.universal-scripts')
 
-    <script>
 
-        $(document).ready(function () {
+<script>
+    $(document).ready(function () {
 
-            let fields = {
-                name: "text",
-                status: "select:Active,Inactive"
-            };
-
-            let columns = [
-                { data: 'DT_RowIndex', title: '#', orderable: false, searchable: false },
-                { data: 'name', title: 'Name' },
-                { data: 'status_btn', title: 'Status', orderable: false, searchable: false },
-                { data: 'action', title: 'Action', orderable: false, searchable: false }
-            ];
-
-
-            let listUrl = "{{ currentGuard() === 'saas'? route('saas.departments.list'): route('tenant.departments.list') }}";
-            loadDataTable(columns,listUrl);
-
-        // =======================
-        // ADD BUTTON
-        // =======================
         $("#addBtn").click(function() {
+             $("#universalForm")[0].reset();
+            $("#modalBody").empty();
             let fields = {
                 name: "text",
             };
-         let usersstore = "{{ currentGuard() === 'saas'? route('saas.departments.store'): route('tenant.departments.store') }}";
-          $("#universalForm").attr("action", usersstore);
+         let departmentstore = "{{ tenantRoute('departments.store') }}";
+          $("#universalForm").attr("action", departmentstore);
 
             loadForm(fields, "Add Department");
         });

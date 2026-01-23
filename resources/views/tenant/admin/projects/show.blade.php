@@ -17,7 +17,7 @@
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <h6>Description</h6>
-                                     <p>{{ $project->description ?? '-' }}</p>
+                                     <p>{!! $project->description ?? '-' !!}</p>
                                 </div>
                             </div>
 
@@ -28,7 +28,8 @@
 
                                     @forelse($project->documents as $doc)
                                         @php
-                                           $ext = strtolower(pathinfo($doc->file, PATHINFO_EXTENSION));
+
+                                           $ext = strtolower(pathinfo($doc->file_path, PATHINFO_EXTENSION));
 
                                             $icon = match ($ext) {
                                                 'pdf' =>  asset('assets/img/icons/pdf.png'),
@@ -38,17 +39,18 @@
                                                 default => asset('assets/img/icons/file.png')
                                             };
 
-                                                $filePath = 'uploads/projects/documents/'.$doc->file;
+                                                $filePath = 'uploads/projects/documents/'.$doc->file_path;
                                                 $viewUrl = asset($filePath);
-                                                $user = $project->createdBy;
+                                                  $created_by_name = $project->createdBy->name ?? 'N/A';
+                                                $uploaded_by_name = $doc->uploadedBy->name ?? 'N/A';
                                         @endphp
                                         <div class="d-flex align-items-center gap-2 mb-2">
                                             <img src="{{$icon }}" width="24">
                                             <a href="{{ $viewUrl }}"
                                             target="_blank">
                                             {{ $doc->file }}
-                                            <span style="color:chocolate">{{$user->name ?? '-'}}</span>
-                                            <span>{{$project->created_at->format('d, M Y') ?? '-'}}</span>
+                                            <span style="color:chocolate">{{$uploaded_by_name}}</span>
+                                            <span>{{ $project->created_at ? $project->created_at->format('d M Y') : '-' }}</span>
                                             </a>
                                         </div>
                                     @empty
@@ -68,7 +70,7 @@
                                             <tr>
                                                 <th>Created by:</th>
 
-                                                <td style="color:chocolate">{{ $user->name ?? '-' }}</td>
+                                                <td style="color:chocolate">{{ $created_by_name ?? '-' }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Status:</th>
@@ -80,11 +82,15 @@
                                             </tr>
                                             <tr>
                                                 <th>Created at:</th>
-                                                <td>{{ $project->created_at->format('d, M Y') }}</td>
+                                                <td>{{ $project->created_at ? $project->created_at->format('d M Y') : '-' }}</td>
                                             </tr>
                                             <tr>
                                                 <th>Actual start:</th>
-                                                <td>{{ $project->actual_start_date->format('d, M Y') }}</td>
+                                                <td>{{ $project->actual_start_date ? $project->actual_start_date->format('d M Y') : '-' }}</td>
+                                            </tr>
+                                             <tr>
+                                                <th>Total Days:</th>
+                                                <td>{{ $project->total_days ?? ''}}</td>
                                             </tr>
                                         </table>
                                     </div>

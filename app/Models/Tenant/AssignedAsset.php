@@ -2,14 +2,14 @@
 
 namespace App\Models\Tenant;
 
-use App\Models\Tenant;
+
 use Illuminate\Database\Eloquent\Model;
 
 class AssignedAsset extends BaseTenantModel
 {
     protected $fillable = [
         'asset_id',
-        'user_id',
+        'employee_id',
         'assigned_date',
         'return_date',
         'status'
@@ -20,20 +20,35 @@ class AssignedAsset extends BaseTenantModel
         return $this->belongsTo(Asset::class);
     }
 
-    public function user()
+    public function employee()
     {
-        return $this->belongsTo(TenantUser::class);
+        return $this->belongsTo(Employee::class);
+    }
+
+    public function getEmployeeNameAttribute()
+    {
+        return $this->employee
+            ? $this->employee->first_name.' '.$this->employee->last_name
+            : '-';
+    }
+
+    public function getAssetNameAttribute()
+    {
+        return $this->asset->name ?? '-';
+    }
+
+    public function getIsAssignedAttribute()
+    {
+        return $this->status == 1;
     }
 
 
- public static function rules($id = null)
-{
-    return [
-        'asset_id' => 'required',
-        'user_id' => 'required',
-        'assigned_date' => 'required|date'
-    ];
-}
-
-
+    public static function rules($id = null)
+    {
+        return [
+            'asset_id'      => 'required|exists:assets,id',
+            'employee_id'   => 'required|exists:employees,id',
+            'assigned_date' => 'required|date'
+        ];
+    }
 }

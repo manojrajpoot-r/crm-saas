@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use App\Models\Tenant;
+
 use App\Models\Domain;
 use App\Models\Tenant\Employee;
 use App\Models\Tenant\EmployeeAddress;
@@ -22,14 +23,22 @@ use App\Models\Tenant\EmployeeExperience;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
-
-
+use App\Models\Tenant\TenantUser;
+use App\Models\Tenant\Role;
 
 trait UniversalCrud
 {
-   public function formatDate($date){
-        return $date ? $date->format('d F Y') : '';
+
+
+    public function formatDate($date)
+    {
+        if (!$date) {
+            return '';
+        }
+
+        return Carbon::parse($date)->format('d F Y');
     }
+
     public function autoUpload(Request $request, $model, $id = null)
     {
         $modelName = strtolower(Str::plural(class_basename($model)));
@@ -88,90 +97,119 @@ trait UniversalCrud
             $file->move($destination, $filename);
 
             $record->$relation()->create([
-                'file' => $filename, //  only name in DB
+                'file_path' => $filename, //  only name in DB
             ]);
         }
     }
 
 
 
-public function saveData(Request $request, $model, $id = null)
-{
+    public function saveData(Request $request, $model, $id = null)
+    {
 
-    $rules = method_exists($model, 'rules') ? $model::rules($id) : [];
-    Validator::make($request->all(), $rules)->validate();
+        $rules = method_exists($model, 'rules') ? $model::rules($id) : [];
+        Validator::make($request->all(), $rules)->validate();
 
-    $data = $request->except([
-        '_token',
-        'documents',
-        'document_titles'
-    ]);
+            $data = $request->except([
+                '_token',
+                'documents',
+            ]);
 
-        if (!empty($data['actual_start_date']) && !empty($data['end_date'])) {
-            $start = Carbon::parse($data['actual_start_date']);
-            $end   = Carbon::parse($data['end_date']);
+            $data['is_paid']     = $request->has('is_paid') ? 1 : 0;
+            $data['allow_half']  = $request->has('allow_half') ? 1 : 0;
+            $data['allow_short'] = $request->has('allow_short') ? 1 : 0;
 
-            $data['total_days'] = $start->diffInDays($end) + 1;
+
+            if (!empty($data['actual_start_date']) && !empty($data['end_date'])) {
+                $start = Carbon::parse($data['actual_start_date']);
+                $end   = Carbon::parse($data['end_date']);
+
+                $data['total_days'] = $start->diffInDays($end) + 1;
+            }
+
+           if (Auth::check()) {
+
+                // CREATE ONLY
+                if (!$id) {
+
+                    $data['created_by']  = Auth::id();
+                    $data['uploaded_by'] = Auth::id();
+                }
+
+                // UPDATE ONLY
+                if ($id) {
+
+                    $data['last_updated'] = now();
+                }
+            }
+
+
+            if (!empty($request->assigned_to)) {
+                $data['assigned_by'] = Auth::id();
+                $data['assigned_at'] = now();
+                $data['is_assigned'] = 1;
+            }
+
+        // ===== MULTI-ROW INSERT =====
+            if (!$id && isset($data['name']) && is_array($data['name'])) {
+
+                $rows = [];
+
+                foreach ($data['name'] as $key => $name) {
+                    if (empty($name)) continue;
+
+                    $rows[] = [
+                        'name'  => $name,
+                        'group' => $data['group'][$key] ?? null,
+                    ];
+                }
+
+                $model::insert($rows);
+
+                return response()->json([
+                    'status'  => true,
+                    'message' => 'Created successfully'
+                ]);
+            }
+
+
+        // ===== SINGLE FILE UPLOAD =====
+        if ($request->files->count() > 0) {
+            $files = $this->autoUpload($request, $model, $id);
+            $data  = array_merge($data, $files);
         }
 
-        if (Auth::check()) {
-            $data['created_by'] = Auth::id();
-            $data['uploaded_by'] = Auth::id();
+        // ===== CREATE / UPDATE =====
+        $record = $id
+            ? tap($model::findOrFail($id))->update($data)
+            : $model::create($data);
+
+
+        // ===== MULTIPLE users =====
+           if ($request->filled('employee_id') && method_exists($record, 'teamMembers')) {
+                $record->teamMembers()->sync($request->employee_id);
+            }
+
+            if ($request->filled('client_id') && method_exists($record, 'clients')) {
+                $record->clients()->sync($request->client_id);
+            }
+
+
+        // ===== MULTIPLE DOCUMENTS =====
+        if ($request->hasFile('documents')) {
+            $this->uploadMultipleDocs(
+                $request,
+                $record,
+                'documents',
+                class_basename($model)
+            );
         }
 
-        if (!empty($request->assigned_to)) {
-            $data['assigned_by'] = Auth::id();
-            $data['assigned_at'] = now();
-            $data['is_assigned'] = 1;
-        }
-
-    // ===== MULTI-ROW INSERT =====
-    if (!$id && isset($data['group']) && is_array($data['group'])) {
-        foreach ($data['group'] as $action) {
-            $rows[] = ['name'=>$data['name'],'group'=>$action];
-        }
-        $model::insert($rows);
-
-        return response()->json(['status'=>'success']);
+        return response()->json([
+            'status' => 'success',
+            'message' => $id ? 'Updated successfully' : 'Created successfully'
+        ]);
     }
-
-    // ===== SINGLE FILE UPLOAD =====
-    if ($request->files->count() > 0) {
-        $files = $this->autoUpload($request, $model, $id);
-        $data  = array_merge($data, $files);
-    }
-
-    // ===== CREATE / UPDATE =====
-    $record = $id
-        ? tap($model::findOrFail($id))->update($data)
-        : $model::create($data);
-
-
-    // ===== MULTIPLE users =====
-       if ($request->filled('user_id')) {
-            $record->teamMembers()->sync($request->user_id);
-        }
-
-        if ($request->filled('client_id')) {
-            $record->clients()->sync($request->client_id);
-        }
-
-
-    // ===== MULTIPLE DOCUMENTS =====
-    if ($request->hasFile('documents')) {
-        $this->uploadMultipleDocs(
-            $request,
-            $record,
-            'documents',
-            class_basename($model)
-        );
-    }
-
-    return response()->json([
-        'status' => 'success',
-        'message' => $id ? 'Updated successfully' : 'Created successfully'
-    ]);
-}
 
 
 
@@ -247,9 +285,15 @@ public function saveTenant(Request $request)
     $rules = [
         'name'   => 'required',
         'domain' => $isUpdate
-            ? 'required|unique:domains,domain,' . $request->id . ',tenant_id' // update me unique exclude current tenant
+            ? 'required|unique:domains,domain,' . $request->id . ',tenant_id'
             : 'required|unique:domains,domain'
     ];
+
+    if (!$isUpdate) {
+        $rules['email'] = 'required|email';
+        $rules['password']    = 'required|min:8';
+    }
+
 
     $validator = Validator::make($request->all(), $rules);
 
@@ -285,52 +329,77 @@ public function saveTenant(Request $request)
         ]);
 
     } else {
-        // ================= CREATE =================
-        $tenantId = (string) Str::uuid();
-        $dbName   = 'tenant_' . strtolower(str_replace(' ', '_', $request->name));
+            // ================= CREATE =================
 
-        $exists = DB::select(
-            "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?",
-            [$dbName]
-        );
+            $tenantId = (string) Str::uuid();
+            $dbName   = 'tenant_' . strtolower(str_replace(' ', '_', $request->name));
 
-        if ($exists) {
+            $exists = DB::select(
+                "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?",
+                [$dbName]
+            );
+
+            if ($exists) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "Database `$dbName` already exists!"
+                ], 409);
+            }
+
+            DB::statement("CREATE DATABASE `$dbName`");
+
+            $tenant = Tenant::create([
+                'id'       => $tenantId,
+                'name'     => $request->name,
+                'slug'     => Str::slug($request->name),
+                'database' => $dbName,
+            ]);
+
+            Domain::create([
+                'tenant_id' => $tenantId,
+                'domain'    => $request->domain,
+            ]);
+
+            // tenant DB set
+            config(['database.connections.tenant.database' => $dbName]);
+            DB::purge('tenant');
+            DB::reconnect('tenant');
+
+            // run tenant migrations
+            Artisan::call('migrate', [
+                '--database' => 'tenant',
+                '--path'     => 'database/migrations/tenant',
+                '--force'    => true
+            ]);
+
+            // ================= CREATE TENANT ADMIN (ONE TIME) =================
+
+             $adminExists = TenantUser::where('master', 1)->exists();
+
+                if (!$adminExists) {
+
+                    Role::create([
+                        'name'     => 'Admin',
+                    ]);
+                    TenantUser::create([
+                        'name'     => 'Tenant Admin',
+                        'email'    => $request->email,
+                        'password' => bcrypt($request->password),
+                        'role_id'  => 1,
+                        'master'   => 1,
+                    ]);
+                }
+
+            }
+
             return response()->json([
-                'status' => 'error',
-                'message' => "Database `$dbName` already exists!"
-            ], 409);
-        }
-
-        DB::statement("CREATE DATABASE `$dbName`");
-
-        $tenant = Tenant::create([
-            'id'       => $tenantId,
-            'name'     => $request->name,
-            'slug'     => Str::slug($request->name),
-            'database' => $dbName,
-        ]);
-
-        Domain::create([
-            'tenant_id' => $tenantId,
-            'domain'    => $request->domain,
-        ]);
-
-        // Run migration
-        config(['database.connections.tenant.database' => $dbName]);
-
-        Artisan::call('migrate', [
-            '--database' => 'tenant',
-            '--path'     => 'database/migrations/tenant',
-            '--force'    => true
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Tenant created successfully!',
-            'database' => $dbName
-        ]);
+                'success'  => true,
+                'message'  => 'Tenant & Tenant Admin created successfully!',
+                'database' => $dbName
+            ]);
     }
-}
+
+
 
 
 
@@ -350,6 +419,9 @@ public function saveEmployeeAll($request, $employeeId = null)
         'personal_email'  => 'required|email',
         'corporate_email' => 'required|email',
         'join_date'       => 'required',
+        'department_id'   => 'required',
+        'designation_id'  => 'required',
+        'profile'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
     ]);
 
     if ($validator->fails()) {
@@ -359,32 +431,39 @@ public function saveEmployeeAll($request, $employeeId = null)
         ], 422);
     }
 
-    try {
+   try {
         DB::transaction(function () use ($request, $employeeId) {
 
             $user = Auth::user();
 
-            $employee = Employee::updateOrCreate(
+            $data = $request->only([
+                'employee_id',
+                'first_name',
+                'last_name',
+                'phone',
+                'emergency_phone',
+                'dob',
+                'gender',
+                'personal_email',
+                'corporate_email',
+                'department_id',
+                'designation_id',
+                'report_to',
+                'join_date',
+            ]);
+
+            if ($request->hasFile('profile')) {
+                $model = new Employee();
+                  $upload = $this->autoUpload($request, $model, $employeeId);
+                $data['profile'] = $upload['profile'];
+            }
+
+          $employee =  Employee::updateOrCreate(
                 ['id' => $employeeId],
-                array_merge(
-                    $request->only([
-                        'employee_id',
-                        'first_name',
-                        'last_name',
-                        'phone',
-                        'emergency_phone',
-                        'dob',
-                        'gender',
-                        'personal_email',
-                        'corporate_email',
-                        'department_id',
-                        'designation_id',
-                        'report_to',
-                        'join_date',
-                    ]),
-                    ['user_id' => $user->id]
-                )
+                array_merge($data, ['user_id' => $user->id])
             );
+
+
 
             if (!$employee) {
                 throw new \Exception('Employee save failed');

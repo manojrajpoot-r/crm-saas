@@ -3,18 +3,31 @@
 namespace App\Http\Controllers\Tenant\Admin\project;
 
 use App\Http\Controllers\Controller;
+use App\Models\Tenant\Employee;
 use Illuminate\Http\Request;
 use App\Models\Tenant\Project;
+use App\Models\Tenant\TenantUser;
 use App\Models\Tenant\ProjectDocument;
 use App\Traits\UniversalCrud;
 use Illuminate\Support\Facades\DB;
 class ProjectController extends Controller
 {
     use UniversalCrud;
-    public function index()
-    {
-        return view('tenant.admin.projects.index');
-    }
+   public function index(Request $request)
+{
+    $employees = Employee::select('id','first_name','last_name')->get();
+
+    $projects = Project::with(['createdBy','documents'])
+        ->latest()
+        ->paginate(10);
+
+        if ($request->ajax()) {
+            return view('tenant.admin.projects.table', compact('projects'))->render();
+        }
+
+    return view('tenant.admin.projects.index', compact('employees','projects'));
+}
+
 
     public function list()
     {
@@ -57,12 +70,12 @@ class ProjectController extends Controller
 
             ->addColumn('status_btn', function ($t) {
 
-                if (!canAccess('projects status')) {
+                if (!canAccess('status_projects')) {
                     return "<span class='badge bg-secondary'>No Access</span>";
                 }
 
                 $label = ucwords(str_replace('_', ' ', $t->status));
-                $url = route('tenant.projects.status', $t->id);
+                $url = tenantRoute('projects.status', $t->id);
 
                 return "
                     <span class='badge bg-info me-2'>{$label}</span>
@@ -83,38 +96,41 @@ class ProjectController extends Controller
             ->addColumn('action', function ($t) {
                 $buttons = '';
 
-                if (canAccess('projects edit')) {
-                    $editUrl = route('tenant.projects.edit', $t->id);
-                    $buttons .= "<button class='btn btn-info btn-sm editBtnProject' data-url='$editUrl'>Edit</button> ";
+                if (canAccess('edit_projects')) {
+                    $editUrl = tenantRoute('projects.edit', $t->id);
+                    $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='$editUrl'>Edit</button> ";
                 }
 
-                if (canAccess('projects delete')) {
-                    $deleteUrl = route('tenant.projects.delete',$t->id);
+                if (canAccess('delete_projects')) {
+                    $deleteUrl = tenantRoute('projects.delete',$t->id);
                     $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='$deleteUrl'>Delete</button> ";
                 }
 
-                if (canAccess('projects view')) {
-                    $viewUrl = route('tenant.projects.show',$t->id);
-                    $buttons .= "<a class='btn btn-primary btn-sm' href='$viewUrl'>View</a> ";
-                }
+              if (canAccess('details_view_projects')) {
+
+                $viewUrl = tenantRoute('projects.show', base64_encode($t->id));
+
+                $buttons .= "<a class='btn btn-primary btn-sm' href='{$viewUrl}'>View</a> ";
+            }
+
 
 
 
                 return $buttons ?: 'No Action';
             })
 
-        ->rawColumns([
-            'dates',
-            'status_btn',
-            'action',
-            'created_by',
-        ])
+            ->rawColumns([
+                'dates',
+                'status_btn',
+                'action',
+                'created_by',
+            ])
 
-            ->make(true);
+                ->make(true);
 
     }
 
-       // ===============================
+    // ===============================
     // CREATE / STORE
     // ===============================
 
@@ -127,33 +143,92 @@ class ProjectController extends Controller
     // ===============================
     // EDIT
     // ===============================
-    public function edit($id)
-    {
-        $project = Project::with(['teamMembers', 'clients'])->findOrFail($id);
+ public function edit($id)
+{
+    $project = Project::with(['teamMembers', 'clients', 'documents'])->findOrFail($id);
 
-        return response()->json([
-            'name'              => $project->name,
-            'type'              => $project->type,
-            'description'       => $project->description,
-            'start_date'        => optional($project->start_date)->format('Y-m-d'),
-            'end_date'          => optional($project->end_date)->format('Y-m-d'),
-            'actual_start_date' => optional($project->actual_start_date)->format('Y-m-d'),
-            'total_days'        => $project->total_days,
-            'completion_percent'=> $project->completion_percent,
-            'hours_allocated'   => $project->hours_allocated,
-            'remarks'           => $project->remarks,
-            'created_by'        => $project->created_by,
-            'status'            => $project->status,
+    return response()->json([
+        "fields" => [
+            "name" => ["type"=>"text", "value"=>$project->name],
+            "type" => [
+                "type"=>"select",
+                "value"=>$project->type,
+                "options"=>[
+                    ["id"=>"fixed","name"=>"Fixed"],
+                    ["id"=>"product","name"=>"Product"],
+                    ["id"=>"hourly","name"=>"Hourly"],
+                    ["id"=>"service","name"=>"Service"],
+                    ["id"=>"support","name"=>"Support"],
+                    ["id"=>"other","name"=>"Other"],
+                ]
+            ],
+            "description"=>["type"=>"textarea","value"=>$project->description],
+            "start_date"=>["type"=>"date","value"=>optional($project->start_date)->format('Y-m-d')],
+            "end_date"=>["type"=>"date","value"=>optional($project->end_date)->format('Y-m-d')],
+            "actual_start_date"=>["type"=>"date","value"=>optional($project->actual_start_date)->format('Y-m-d')],
+            "total_days"=>["type"=>"number","value"=>$project->total_days,"readonly"=>true],
+            "completion_percent"=>["type"=>"number","value"=>$project->completion_percent],
+            "hours_allocated"=>["type"=>"number","value"=>$project->hours_allocated],
+            "remarks"=>["type"=>"text","value"=>$project->remarks],
 
-            // 👇 pivot data
-            'user_id'   => $project->teamMembers->pluck('id'),
-            'client_id' => $project->clients->pluck('id'),
-        ]);
-    }
+            "status"=>[
+                "type"=>"select",
+                "value"=>$project->status,
+                    "options" => [
+                        ["id" => "created",       "name" => "Created"],
+                        ["id" => "working",       "name" => "Working"],
+                        ["id" => "on_hold",       "name" => "On Hold"],
+                        ["id" => "finished",      "name" => "Finished"],
+                        ["id" => "maintenance",   "name" => "Maintenance"],
+                        ["id" => "delay",         "name" => "Delay"],
+                        ["id" => "handover",      "name" => "Handover"],
+                        ["id" => "discontinued",  "name" => "Discontinued"],
+                        ["id" => "inactive",      "name" => "Inactive"],
+                        ["id" => "completed",     "name" => "Completed"],
+                        ["id" => "cancelled",     "name" => "Cancelled"],
+                        ["id" => "pending",       "name" => "Pending"],
+                        ["id" => "closed",        "name" => "Closed"],
+                        ["id" => "resolved",      "name" => "Resolved"],
+                        ["id" => "reopened",      "name" => "Reopened"],
+                        ["id" => "in_progress",   "name" => "In Progress"],
+                    ]
+                ],
 
+                "employee_id" => [
+                    "type"  => "multiselect",
+                    "value" => $project->teamMembers->pluck('id')->toArray(),
+                    "options" => Employee::select('id', 'first_name', 'last_name')
+                        ->get()
+                        ->map(function ($e) {
+                            return [
+                                'id'   => $e->id,
+                                'name' => $e->first_name . ' ' . $e->last_name,
+                            ];
+                        })
+                ],
 
+              "client_id" => [
+                    "type"  => "multiselect",
+                    "value" => $project->clients->pluck('id')->toArray(),
+                    "options" => Employee::select('id', 'first_name', 'last_name')
+                        ->get()
+                        ->map(function ($e) {
+                            return [
+                                'id'   => $e->id,
+                                'name' => $e->first_name . ' ' . $e->last_name,
+                            ];
+                        })
+                ],
 
-
+            "documents"=> $project->documents->map(function($doc){
+                return [
+                    'id' => $doc->id,
+                    'file' => $doc->file_path,
+                ];
+            })
+        ]
+    ]);
+}
 
     // ===============================
     // UPDATE
@@ -163,8 +238,6 @@ class ProjectController extends Controller
     {
         return $this->saveData($request, Project::class, $id);
     }
-
-
 
     // ===============================
     // DELETE
@@ -189,28 +262,15 @@ class ProjectController extends Controller
 
     public function show($id)
     {
-        $project = Project::with(['documents', 'createdBy'])->findOrFail($id);
+         $decodedId = base64_decode($id, true);
+        $project = Project::with(['documents', 'createdBy'])->findOrFail($decodedId);
 
         return view('tenant.admin.projects.show', compact('project'));
     }
 
-    // ===============================
-    // Pdf download
-    // ===============================
 
 
-    public function downloadDoc($id)
-    {
-        $doc = ProjectDocument::findOrFail($id);
 
-        $path = public_path('uploads/projects/documents/'.$doc->file);
-
-        if (!file_exists($path)) {
-            abort(404);
-        }
-
-        return response()->download($path);
-    }
 
 
 }

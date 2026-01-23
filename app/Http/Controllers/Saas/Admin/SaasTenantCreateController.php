@@ -17,83 +17,89 @@ class SaasTenantCreateController extends Controller
 {
     use UniversalCrud;
 
-    public function index()
+
+    public function index(Request $request)
     {
-        return view("tenant.admin.tenants.index");
-    }
+       $hasTenantUser = Tenant::exists();
+        $tenants = Tenant::latest()->paginate(10);
 
-    // ===============================
-    // SERVER-SIDE DATATABLE
-    // ===============================
-    public function list()
-    {
-        $query = Tenant::with('domains');
+        if ($request->ajax()) {
+            return view('tenant.admin.tenants.table', compact('tenants'))->render();
+        }
 
-        return datatables()->of($query)
-            ->addIndexColumn()
-
-            ->addColumn('domain', function ($t) {
-                return $t->domains->first()->domain ?? '';
-            })
-
-            ->addColumn('status_btn', function ($t) {
-
-                if (!canAccess('tenants status')) {
-                    return '-';
-                }
-
-               $text  = $t->status ? "Deactivate" : "Activate";
-                $url   = route('saas.tenants.status', $t->id);
-
-                $baseClass = "btn btn-sm btn-outline-secondary statusBtn";
-                $hoverClass = $t->status ? "hover-danger" : "hover-success";
-
-                $tooltip = $t->status
-                    ? "This will block the tenant’s website and log out all users."
-                    : "This will re-enable the tenant’s website.";
-
-                return "<button
-                    class='$baseClass $hoverClass'
-                    data-url='$url'
-                    data-bs-toggle='tooltip'
-                    title='$tooltip'>
-                    $text
-                </button>";
-            })
-
-            ->addColumn('action', function ($t) {
-
-                $buttons = '';
-
-                if (canAccess('tenants edit')) {
-                    $editUrl = route('saas.tenants.edit', $t->id);
-                    $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='$editUrl'>Edit</button> ";
-                }
-
-                if (canAccess('tenants delete')) {
-                    $deleteUrl = route('saas.tenants.delete', $t->id);
-                    $buttons .= "<button
-                                        class='btn btn-outline-danger btn-sm deleteBtn'
-                                        data-url='$deleteUrl'
-                                        data-bs-toggle='tooltip'
-                                        data-bs-placement='top'
-                                        title='Permanently deletes tenant, database & all data. Cannot be undone.'>
-                                        Delete Tenant Permanently
-                                    </button>";
-
-                }
-
-                return $buttons ?: '-';
-            })
-
-            ->rawColumns(['status_btn', 'action'])
-            ->make(true);
+        return view('tenant.admin.tenants.index', compact('hasTenantUser'));
     }
 
 
-    // ===============================
-    // CREATE / STORE
-    // ===============================
+
+
+
+    // public function list()
+    // {
+    //     $query = Tenant::with('domains');
+
+    //     return datatables()->of($query)
+    //         ->addIndexColumn()
+
+    //         ->addColumn('domain', function ($t) {
+    //             return $t->domains->first()->domain ?? '';
+    //         })
+
+    //        ->addColumn('status_btn', function ($t) {
+
+    //             if (!canAccess('tenants_status')) {
+    //                 return '-';
+    //             }
+
+    //             $text = $t->status ? "Deactivate" : "Activate";
+    //             $url  = route('saas.tenants.status', $t->id);
+
+    //             $baseClass  = "btn btn-sm btn-outline-secondary statusBtn";
+    //             $hoverClass = $t->status ? "hover-danger" : "hover-success";
+
+    //             $tooltip = $t->status
+    //                 ? "This will block the tenant’s website and log out all users."
+    //                 : "This will re-enable the tenant’s website.";
+
+    //             return "<button
+    //                 class='{$baseClass} {$hoverClass}'
+    //                 data-url='{$url}'
+    //                 data-bs-toggle='tooltip'
+    //                 title='{$tooltip}'>
+    //                 {$text}
+    //             </button>";
+    //         })
+
+
+    //         ->addColumn('action', function ($t) {
+
+    //              $buttons = '';
+
+    //             if (canAccess('edit_tenants')) {
+    //                 $editUrl = route('saas.tenants.edit', $t->id);
+    //                 $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='{$editUrl}'>Edit</button> ";
+    //             }
+
+    //             if (canAccess('delete_tenants')) {
+    //                 $deleteUrl = route('saas.tenants.delete', $t->id);
+    //                 $buttons .= "<button
+    //                     class='btn btn-outline-danger btn-sm deleteBtn'
+    //                     data-url='{$deleteUrl}'
+    //                     data-bs-toggle='tooltip'
+    //                     title='Permanently deletes tenant, database & all data. Cannot be undone.'>
+    //                     Delete Tenant Permanently
+    //                 </button>";
+    //             }
+
+    //             return $buttons ?: '-';
+    //         })
+
+
+    //         ->rawColumns(['status_btn', 'action'])
+    //         ->make(true);
+    // }
+
+
 
     public function store(Request $request)
     {
@@ -101,9 +107,7 @@ class SaasTenantCreateController extends Controller
         return $this->saveTenant($request);
     }
 
-    // ===============================
-    // EDIT
-    // ===============================
+
     public function edit($id)
     {
         $t = Tenant::with('domains')->find($id);
@@ -117,9 +121,6 @@ class SaasTenantCreateController extends Controller
     }
 
 
-    // ===============================
-    // UPDATE EXISTING TENANT
-    // ===============================
     public function update(Request $request, $id)
     {
 
@@ -128,9 +129,7 @@ class SaasTenantCreateController extends Controller
     }
 
 
-    // ===============================
-    // DELETE
-    // ===============================
+
     public function delete($id)
     {
         $tenant = Tenant::find($id);
@@ -143,8 +142,6 @@ class SaasTenantCreateController extends Controller
         }
 
         $dbName = $tenant->database;
-
-        //  First delete using your dynamic system
         $response = $this->deleteData(
             Tenant::class,
             $id,
@@ -153,12 +150,11 @@ class SaasTenantCreateController extends Controller
             ]
         );
 
-        // If delete success, then drop database
         if ($response->getData()->success) {
             try {
                 DB::statement("DROP DATABASE IF EXISTS `$dbName`");
             } catch (\Exception $e) {
-                // DB delete fail ho jaye to bhi system na toote
+
                 Log::error("Tenant DB delete failed: " . $e->getMessage());
             }
         }

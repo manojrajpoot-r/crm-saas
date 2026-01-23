@@ -8,7 +8,7 @@
 
             @if(currentTenant())
                 <form id="universalForm"
-                    action="{{ route('tenant.import.upload') }}"
+                    action="{{ tenantRoute('import.upload') }}"
                     method="POST"
                     enctype="multipart/form-data">
                     @csrf

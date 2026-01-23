@@ -18,18 +18,14 @@ if (!function_exists('canAccess')) {
             return false;
         }
 
-        if (strtolower($user->role->name) === 'super-admin') {
+        if ($user->master == 1) {
             return true;
         }
 
 
         return $user->role->permissions
-            ->pluck('group') // Users View, Users Add
+            ->pluck('name') // 'view_users','create_users','edit_users','delete_users',
             ->map(fn ($p) => strtolower(trim($p)))
             ->contains(strtolower(trim($permission)));
     }
 }
-
-
-
-

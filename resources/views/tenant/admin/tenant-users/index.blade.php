@@ -3,83 +3,52 @@
 @section('content')
 <div class="main-panel">
     <div class="content">
-        @include('tenant.includes.universal-modal')
-        @include('tenant.includes.universal-form')
+   @include('tenant.includes.universal-modal')
+       {{-- ADD BUTTON --}}
+        @if(canAccess('create_users'))
+            <button id="addBtn" class="btn btn-primary mb-3">
+                Add User
+            </button>
 
-        @if (canAccess('users add'))
-             <button id="addBtn" class="btn btn-primary mb-2">Add User</button>
         @endif
+           @include('tenant.includes.universal-pagination', [
+            'url' => tenantRoute('users.list'),
+            'wrapperId' => 'usersTable',
+            'content' => view('tenant.admin.tenant-users.table', [
+                'users' => \App\Models\Tenant\TenantUser::with('role')->latest()->paginate(10)
+            ])
+        ])
 
-        <div class="text-center">
-            @if (canAccess('users import'))
-                    @if(currentTenant())
-                        <a href="{{route('tenant.import.users.index')}}"  class="btn btn-primary mb-2">Import</a>
-                    @else
-                        <a href="{{route('saas.import.users.index')}}"  class="btn btn-primary mb-2">Import</a>
-                    @endif
-            @endif
-        </div>
-        @include('tenant.includes.universal-datatable')
     </div>
 </div>
 @endsection
-
 @push('scripts')
     @include('tenant.includes.universal-scripts')
-
-    <script>
-
+     <script>
         $(document).ready(function () {
-
-            let columns = [
-                { data: 'DT_RowIndex', title: '#', orderable: false, searchable: false },
-                {data: 'profile_img', title: 'Profile', orderable: false, searchable: false },
-                { data: 'name', title: 'Name' },
-                { data: 'email', title: 'Email' },
-                 { data: 'role_id', title: 'Role' },
-                { data: 'status_btn', title: 'Status', orderable: false, searchable: false },
-                { data: 'action', title: 'Action', orderable: false, searchable: false }
-            ];
-
-           let listUrl = "{{ currentGuard() === 'saas'? route('saas.users.list'): route('tenant.users.list', ['tenant' => currentTenant()]) }}";
-
-            loadDataTable(columns, listUrl);
-
-            // =======================
-            // ADD BUTTON
-            // =======================
             $("#addBtn").click(function() {
 
-
-                $("#universalForm")[0].reset();
-                $("#profilePreview").html("");
-                $(".profile-preview").remove();
-
-                let rolelist = "{{ currentGuard() === 'saas'? route('saas.roles.list'): route('tenant.roles.list', ['tenant' => currentTenant()]) }}";
-                $.get(rolelist, function(roles) {
-
-                 let data = roles.data;
-
-                let roleOptions = data.map(r => `${r.id}|${r.name}`).join(',');
-
+            $('#modalBody').html('');
+                let ROLES = @json($roles);
+                let roleOptions = ROLES.map(r => `${r.id}|${r.name}`).join(',');
                 let fields = {
                     name: "text",
                     email: "text",
+                    phone:"number",
                     password: "password",
                     profile: "file",
                     role_id: "select:" + roleOptions,
 
                 };
 
-                let usersstore = "{{ currentGuard() === 'saas'? route('saas.users.store'): route('tenant.users.store', ['tenant' => currentTenant()]) }}";
+                let usersstore = "{{ currentGuard() === 'saas'? route('saas.users.store'): tenantRoute('users.store', ['tenant' => currentTenant()]) }}";
                 $("#universalForm").attr("action", usersstore);
 
                     loadForm(fields, "Add User");
-
-
-
                 });
             });
-        });
+
     </script>
 @endpush
+
+

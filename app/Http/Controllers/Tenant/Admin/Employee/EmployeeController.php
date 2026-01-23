@@ -13,56 +13,71 @@ class EmployeeController extends Controller
 {
      use UniversalCrud;
 
-    public function index()
+
+    public function index(Request $request)
     {
-        return view('tenant.admin.employees.index');
+
+        $employees = Employee::with(['user', 'department', 'designation', 'manager'])->latest()->paginate(10);
+
+        if ($request->ajax()) {
+            return view('tenant.admin.employees.table', compact('employees'))->render();
+        }
+
+        return view('tenant.admin.employees.index', compact('employees'));
     }
 
-    public function list()
-    {
-        $query = Employee::with(['user', 'department', 'designation', 'manager'])->latest();
+    // public function list()
+    // {
+    //     $query = Employee::with(['user', 'department', 'designation', 'manager'])->latest();
 
-        return datatables()->of($query)
-            ->addIndexColumn()
+    //     return datatables()->of($query)
+    //         ->addIndexColumn()
 
-            ->addColumn('user_name', function ($t) {
-                return $t->user ? $t->user->name : '-';
-            })
-            ->addColumn('department_name', function ($t) {
-                return $t->department ? $t->department->name : '-';
-            })
-            ->addColumn('designation_name', function ($t) {
-                return $t->designation ? $t->designation->name : '-';
-            })
-            ->addColumn('manager_name', function ($t) {
-                return $t->manager ? $t->manager->first_name . ' ' . $t->manager->last_name : '-';
-            })
+    //         ->addColumn('user_name', function ($t) {
+    //             return $t->user ? $t->user->name : '-';
+    //         })
+    //         ->addColumn('department_name', function ($t) {
+    //             return $t->department ? $t->department->name : '-';
+    //         })
+    //         ->addColumn('designation_name', function ($t) {
+    //             return $t->designation ? $t->designation->name : '-';
+    //         })
+    //         ->addColumn('manager_name', function ($t) {
+    //             return $t->manager ? $t->manager->first_name . ' ' . $t->manager->last_name : '-';
+    //         })
 
-            ->addColumn('status_btn', function ($t) {
-                if (!canAccess('employees status')) {
-                    return '-';
-                }
-                $class = $t->status ? "btn-success" : "btn-danger";
-                $text  = $t->status ? "Active" : "Inactive";
-                $url   = route('tenant.employees.status', ['id' => $t->id]);
+    //          ->addColumn('dob', function($t){
+    //                 return $this->formatDate($t->dob);
+    //             })
 
-                return "<button class='btn btn-sm $class statusBtn' data-url='$url'>$text</button>";
-            })
-            ->addColumn('action', function ($t) {
-                $buttons = '';
-                if (canAccess('employees edit')) {
-                    $editUrl = route('tenant.employees.edit', ['id' => $t->id]);
-                    $buttons .= "<a class='btn btn-info btn-sm' href='$editUrl'>Edit</a> ";
-                }
-                if (canAccess('employees delete')) {
-                    $deleteUrl = route('tenant.employees.delete', ['id' => $t->id]);
-                    $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='$deleteUrl'>Delete</button> ";
-                }
-                return $buttons ?: '-';
-            })
-            ->rawColumns(['status_btn', 'action'])
-            ->make(true);
-    }
+    //          ->addColumn('join_date', function($t){
+    //                 return $this->formatDate($t->join_date);
+    //             })
+    //         ->addColumn('status_btn', function ($t) {
+    //             if (!canAccess('status_hrs')) {
+    //                 return '-';
+    //             }
+    //             $class = $t->status ? "btn-success" : "btn-danger";
+    //             $text  = $t->status ? "Active" : "Inactive";
+    //             $url   = tenantRoute('employees.status', ['id' => $t->id]);
+
+    //             return "<button class='btn btn-sm $class statusBtn' data-url='$url'>$text</button>";
+    //         })
+    //         ->addColumn('action', function ($t) {
+    //             $buttons = '';
+    //             if (canAccess('edit_hrs')) {
+    //                 $editUrl = tenantRoute('employees.edit', ['id' => $t->id]);
+    //                 $buttons .= "<a class='btn btn-info btn-sm' href='$editUrl'>Edit</a> ";
+    //             }
+    //             if (canAccess('delete_hrs')) {
+    //                 $deleteUrl = tenantRoute('employees.delete', ['id' => $t->id]);
+    //                 $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='$deleteUrl'>Delete</button> ";
+    //             }
+    //             return $buttons ?: '-';
+    //         })
+    //         ->rawColumns(['status_btn', 'action'])
+    //         ->make(true);
+    // }
 
 
 
@@ -83,7 +98,7 @@ class EmployeeController extends Controller
             'upiInfo',
             'educations',
             'experiences',
-            'reports'
+
         ])->findOrFail($id)
         : null;
 

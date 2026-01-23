@@ -3,57 +3,45 @@
 @section('content')
 <div class="main-panel">
     <div class="content">
-        @include('tenant.includes.universal-modal')
-        @include('tenant.includes.universal-form')
+   @include('tenant.includes.universal-modal')
+       {{-- ADD BUTTON --}}
+        @if(canAccess('create_users'))
+            <button id="addBtn" class="btn btn-primary mb-3">
+                Add Asset
+            </button>
 
-         @if (canAccess('asset assigns add'))
-        <button id="addBtn" class="btn btn-primary mb-2">Add Asset</button>
         @endif
-        @include('tenant.includes.universal-datatable')
+           @include('tenant.includes.universal-pagination', [
+            'url' => tenantRoute('asset_assigns.list'),
+            'wrapperId' => 'assetsTable',
+            'content' => view('tenant.admin.assets.table', [
+            'assets' => \App\Models\Tenant\Asset::latest()->paginate(10)
+            ])
+        ])
+
     </div>
 </div>
-
-
 @endsection
-
 @push('scripts')
     @include('tenant.includes.universal-scripts')
-
-    <script>
-
+        <script>
         $(document).ready(function () {
 
-
-
-            let columns = [
-                { data: 'DT_RowIndex', title: '#', orderable: false, searchable: false },
-                { data: 'name', title: 'Name' },
-                { data: 'code', title: 'Code' },
-                { data: 'type', title: 'Type' },
-
-                { data: 'status_btn', title: 'Status', orderable: false, searchable: false },
-                { data: 'action', title: 'Action', orderable: false, searchable: false }
-            ];
-
-
-            let listUrl = "{{ currentGuard() === 'saas'? route('saas.asset_assigns.list'): route('tenant.asset_assigns.list') }}";
-            loadDataTable(columns,listUrl);
-
-        // =======================
-        // ADD BUTTON
-        // =======================
         $("#addBtn").click(function() {
+             $("#universalForm")[0].reset();
+                $("#modalBody").empty();
             let fields = {
                 name: "text",
                 code: "text",
                 type: "text",
             };
-         let usersstore = "{{ currentGuard() === 'saas'? route('saas.asset_assigns.store'): route('tenant.asset_assigns.store') }}";
-          $("#universalForm").attr("action", usersstore);
+         let assetsstore = "{{ tenantRoute('asset_assigns.store') }}";
+          $("#universalForm").attr("action", assetsstore);
 
             loadForm(fields, "Add Asset");
         });
-        });
+    });
+
     </script>
 @endpush
 

@@ -6,82 +6,38 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Tenant\Task;
 use App\Models\Tenant\Project;
+use App\Models\Tenant\ProjectModule;
+use App\Models\Tenant\TenantUser;
 use App\Traits\UniversalCrud;
 use Illuminate\Support\Facades\Auth;
 class TaskController extends Controller
 {
         use UniversalCrud;
-
     public function index(Request $request)
     {
-        $id =$request->id;
+        $id = base64_decode($request->id);
         $project = Project::findOrFail($id);
-        return view('tenant.admin.tasks.index',compact('project'));
-    }
 
+        $moduleList = ProjectModule::select('id','title')
+            ->where('project_id', $project->id)
+            ->get();
 
-    public function list(Request $request)
-    {
-        $projectId = $request->project_id;
+        $userList = TenantUser::select('id','name')->get();
 
-        $query = Task::where('project_id', $projectId)->latest();
+        $tasks = Task::where('project_id', $project->id)
+            ->latest()
+            ->paginate(10);
 
-        return datatables()->of($query)
-            ->addIndexColumn()
+        if ($request->ajax()) {
+            return view('tenant.admin.tasks.table', compact('tasks'))->render();
+        }
 
-            // STATUS (1,2,3)
-            ->addColumn('status_text', function ($t) {
+        return view(
+            'tenant.admin.tasks.index',
+            compact('project','moduleList','userList','tasks')
+        );
+}
 
-                $map = [
-                    1 => ['Completed', 'success'],
-                    2 => ['Created', 'secondary'],
-                    3 => ['Declined', 'danger'],
-                ];
-
-                [$text, $color] = $map[$t->status] ?? ['Unknown', 'dark'];
-
-                return "<span class='badge bg-$color'>$text</span>";
-            })
-
-            // COMPLETED
-            ->addColumn('complete_btn', function ($t) {
-                if ($t->is_completed) {
-                    return "<span class='badge bg-success'>Completed</span>";
-                }
-
-                return "<button class='btn btn-sm btn-warning changeStatus'
-                        data-id='{$t->id}'
-                        data-type='complete'>Mark Complete</button>";
-            })
-
-            // APPROVED
-            ->addColumn('approve_btn', function ($t) {
-                if ($t->is_approved) {
-                    return "<span class='badge bg-primary'>Approved</span>";
-                }
-
-                return "<button class='btn btn-sm btn-info changeStatus'
-                        data-id='{$t->id}'
-                        data-type='approve'>Approve</button>";
-            })
-
-            ->addColumn('action', function ($t) {
-                return "
-                    <button class='btn btn-info btn-sm editBtn'
-                        data-url='".route('tenant.tasks.edit',$t->id)."'>Edit</button>
-
-                    <button class='btn btn-danger btn-sm deleteBtn'
-                        data-url='".route('tenant.tasks.delete',$t->id)."'>Delete</button>
-                ";
-            })
-
-            ->rawColumns(['status_text','complete_btn','approve_btn','action'])
-            ->make(true);
-    }
-
-     // ===============================
-    // CREATE / STORE
-    // ===============================
 
     public function store(Request $request)
     {
@@ -90,9 +46,6 @@ class TaskController extends Controller
     }
 
 
-    // ===============================
-    // EDIT
-    // ===============================
     public function edit($id)
     {
 
@@ -104,37 +57,19 @@ class TaskController extends Controller
         return response()->json($json);
     }
 
-    // ===============================
-    // UPDATE
-    // ===============================
     public function update(Request $request, $id)
     {
-
          return $this->saveData($request, Task::class, $id);
-
     }
 
-    // ===============================
-    // DELETE
-    // ===============================
+
     public function delete($id)
     {
-        return $this->deleteData(
-            Task::class,
-            $id,
-
-
-        );
+        return $this->deleteData(Task::class,$id);
     }
 
 
-    // ===============================
-    // STATUS
-    // ===============================
-    // public function status($id)
-    // {
-    //     return $this->toggleStatus(Task::class, $id);
-    // }
+
 
     public function status(Request $request, $id)
     {

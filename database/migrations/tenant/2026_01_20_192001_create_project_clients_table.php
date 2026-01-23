@@ -11,21 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('project_team_members', function (Blueprint $table) {
+        Schema::create('project_clients', function (Blueprint $table) {
             $table->id();
              $table->unsignedBigInteger('project_id');
-            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('client_id');
+
             // Foreign keys
             $table->foreign('project_id')
                   ->references('id')->on('projects')
                   ->onDelete('cascade');
 
-            $table->foreign('user_id')
-                  ->references('id')->on('users')
+            $table->foreign('client_id')
+                  ->references('id')->on('employees')
                   ->onDelete('cascade');
 
-            // Prevent duplicate user in same project
-            $table->unique(['project_id', 'user_id']);
+            // Prevent duplicate client in same project
+            $table->unique(['project_id', 'client_id']);
             $table->timestamps();
         });
     }
@@ -35,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('project_team_members');
+        Schema::dropIfExists('project_clients');
     }
 };

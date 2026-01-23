@@ -6,12 +6,14 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Auth;
 use App\Providers\TenantUserProvider;
+use Illuminate\Pagination\Paginator;
 class RouteServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
-        parent::boot();
 
+        parent::boot();
+         Paginator::useBootstrapFive();
         $this->routes(function () {
             // Tenant routes
             Route::middleware(['web', 'tenant'])

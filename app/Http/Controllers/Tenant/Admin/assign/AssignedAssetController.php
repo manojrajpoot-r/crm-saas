@@ -5,55 +5,72 @@ namespace App\Http\Controllers\Tenant\Admin\assign;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Tenant\Asset;
+use App\Models\Tenant\Employee;
 use App\Models\Tenant\AssignedAsset;
 use App\Models\Tenant\TenantUser;
-
+use App\Traits\UniversalCrud;
 class AssignedAssetController extends Controller
 {
-
-    public function index()
+         use UniversalCrud;
+    public function index(Request $request)
     {
-        return view('tenant.admin.assign.index');
+         $employees = Employee::select('id', 'first_name', 'last_name')->where('status', '1')->get();
+         $assets = Asset::select('id', 'name')->get();
+        $assignedAssets = AssignedAsset::with(['employee', 'asset'])->latest();
+          if ($request->ajax()) {
+            return view('tenant.admin.assigns.table', compact('assets','employees','assignedAssets'))->render();
+        }
+
+
+        return view('tenant.admin.assigns.index', compact('assets','employees','assignedAssets'));
 
     }
 
-    public function list()
-    {
-        $data = AssignedAsset::with(['user','asset'])->latest();
+//  public function list()
+// {
+//     $data = AssignedAsset::with(['employee', 'asset'])->latest();
 
-        return datatables()->of($data)
-            ->addIndexColumn()
-               ->addColumn('user_name', function ($t) {
-                return $t->user ? $t->user->name : '-';
-            })
-            ->addColumn('asset_name', function ($t) {
-                return $t->asset ? $t->asset->name : '-';
-            })
+//     return datatables()->of($data)
+//         ->addIndexColumn()
 
-            ->addColumn('action', function ($row) {
-                  $url = route('tenant.assigns.status', $row->id);
-                if ($row->status == '1') { // 1 = assigned
-                    return '<button class="btn btn-sm btn-danger statusBtn" data-url="'.$url.'">Return</button>';
-                }
-                return '-';
-            })
-            ->rawColumns(['action'])
-            ->make(true);
-    }
+//         ->addColumn('user_name', function ($t) {
+//             if ($t->employee) {
+//                 return $t->employee->first_name . ' ' . $t->employee->last_name;
+//             }
+//             return '-';
+//         })
+
+//         ->addColumn('asset_name', function ($t) {
+//             return $t->asset ? $t->asset->name : '-';
+//         })
+
+//          ->editColumn('assigned_date', function($t){
+//                     return $this->formatDate($t->assigned_date);
+//             })
+
+//         ->addColumn('action', function ($row) {
+//             $url = tenantRoute('assigns.status', $row->id);
+
+//             if ($row->status == '1') {
+//                 return '<button class="btn btn-sm btn-danger statusBtn" data-url="'.$url.'">Return</button>';
+//             }
+//             return '-';
+//         })
+
+//         ->rawColumns(['action'])
+//         ->make(true);
+// }
+
 
     public function store(Request $request)
     {
         $request->validate([
             'asset_id' => 'required',
-            'user_id'  => 'required'
+            'employee_id'  => 'required'
         ]);
 
         //  Check asset already assigned or not
-        if (
-            AssignedAsset::where('asset_id', $request->asset_id)
-                ->where('status', '1')
-                ->exists()
-        ) {
+        if (AssignedAsset::where('asset_id', $request->asset_id)->where('status', '1')->exists()) {
             return response()->json([
                 'message' => 'Asset already assigned'
             ], 422);
@@ -62,7 +79,7 @@ class AssignedAssetController extends Controller
          //status 1=assign 0=return
         AssignedAsset::create([
             'asset_id'      => $request->asset_id,
-            'user_id'       => $request->user_id,
+            'employee_id'       => $request->employee_id,
             'assigned_date' => now(),
             'status'        => '1'
         ]);

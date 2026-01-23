@@ -1,7 +1,8 @@
 
 		<div class="logo-header">
-				<a href="index.html" class="logo">
-					CRM SAAS
+				<a  href="{{ currentTenant() ? tenantRoute('dashboard') : route('saas.dashboard') }}" class="logo">
+                {{ currentTenant() ? 'Tenant Dashboard' : 'SAAS Dashboard' }}
+
 				</a>
 				<button class="navbar-toggler sidenav-toggler ml-auto" type="button" data-toggle="collapse" data-target="collapse" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">
 					<span class="navbar-toggler-icon"></span>
@@ -113,7 +114,7 @@
                                    <form method="POST"
                                             action="{{ currentGuard() === 'saas'
                                                     ? route('saas.logout')
-                                                    : route('tenant.logout', ['tenant' => currentTenant()]) }}"
+                                                    : tenantRoute('logout') }}"
                                             data-logout="true">
                                             @csrf
                                             <button type="button" style="margin-left: 22px;" class="btn btn-danger logoutBtn">Logout</button>

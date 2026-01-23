@@ -3,48 +3,50 @@
 @section('content')
 <div class="main-panel">
     <div class="content">
-        @include('tenant.includes.universal-modal')
-        @include('tenant.includes.universal-form')
+   @include('tenant.includes.universal-modal')
+       {{-- ADD BUTTON --}}
+        @if(canAccess('create_roles'))
+            <button id="addBtn" class="btn btn-primary mb-3">
+                Add Role
+            </button>
 
-         @if (canAccess('roles add'))
-        <button id="addBtn" class="btn btn-primary mb-2">Add Role</button>
         @endif
-        @include('tenant.includes.universal-datatable')
+           @include('tenant.includes.universal-pagination', [
+            'url' => tenantRoute('roles.list'),
+            'wrapperId' => 'rolesTable',
+            'content' => view('tenant.admin.roles.table', [
+            'roles' => \App\Models\Tenant\Role::latest()->paginate(10)
+            ])
+        ])
+
     </div>
 </div>
-
-
 @endsection
-
 @push('scripts')
     @include('tenant.includes.universal-scripts')
-
-    <script>
+     <script>
 
         $(document).ready(function () {
-            let columns = [
-                { data: 'DT_RowIndex', title: '#', orderable: false, searchable: false },
-                { data: 'name', title: 'Name' },
-                { data: 'status_btn', title: 'Status', orderable: false, searchable: false },
-                { data: 'action', title: 'Action', orderable: false, searchable: false }
-            ];
+
+            $("#addBtn").click(function() {
+
+            $('#modalBody').html('');
 
 
-            let listUrl = "{{ currentGuard() === 'saas'? route('saas.roles.list'): route('tenant.roles.list', ['tenant' => currentTenant()]) }}";
-            loadDataTable(columns,listUrl);
+                let fields = {
+                    name: "text",
 
-        // =======================
-        // ADD BUTTON
-        // =======================
-        $("#addBtn").click(function() {
-            let fields = {
-                name: "text",
-            };
-         let usersstore = "{{ currentGuard() === 'saas'? route('saas.roles.store'): route('tenant.roles.store', ['tenant' => currentTenant()]) }}";
-          $("#universalForm").attr("action", usersstore);
+                };
 
-            loadForm(fields, "Add Role");
-        });
-        });
+                let rolestore = "{{ currentGuard() === 'saas'? route('saas.roles.store'): tenantRoute('roles.store') }}";
+                $("#universalForm").attr("action", rolestore);
+
+                    loadForm(fields, "Add Role");
+                });
+            });
+
+
     </script>
 @endpush
+
+

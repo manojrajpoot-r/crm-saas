@@ -9,7 +9,7 @@ class TenantUser extends Authenticatable
     protected $connection = 'tenant';
     protected $table = 'users';
     protected $primaryKey = 'id';
-    protected $fillable = ['name','email','password','role_id','profile','phone'];
+    protected $fillable = ['name','email','password','role_id','profile','phone','master'];
     protected $hidden = ['password','remember_token'];
 
 
@@ -56,6 +56,17 @@ class TenantUser extends Authenticatable
         return $this->hasOne(Employee::class, 'user_id');
     }
 
+    public function getProfileUrlAttribute()
+    {
+        return $this->profile
+            ? asset('uploads/tenantusers/profile/'.$this->profile)
+            : asset('images/default-profile.png');
+    }
+
+    public function getRoleNameAttribute()
+    {
+        return $this->role->name ?? 'N/A';
+    }
 
 
 

@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
-            $table->morphs('commentable'); // commentable_id, commentable_type
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->text('comment')->nullable(); // text optional, file bhi ho sakta
+            $table->unsignedBigInteger('project_id');
+            $table->unsignedBigInteger('uploaded_by');
+            $table->text('comment');
             $table->timestamps();
         });
     }

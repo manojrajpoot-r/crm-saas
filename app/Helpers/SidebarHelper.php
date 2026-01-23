@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Helpers;
 
 use Illuminate\Support\Facades\Auth;
@@ -6,121 +7,173 @@ use Illuminate\Support\Facades\Request;
 
 class SidebarHelper
 {
-    public static function fullMenu()
+    public static function isSaas()
     {
-        $auth_id = Auth::guard('web')->id();
-        $isSaas = Auth::guard('web')->check();
-        $tenant = Request::route('tenant');
+        return Request::routeIs('saas.*');
+    }
 
-        return [
+    public static function menu()
+    {
+        $isSaas = self::isSaas();
+        $authId = Auth::id();
 
-            [
-                'name' => 'Dashboard',
-               'icon' => 'la la-house-damage',
-                'url' => $isSaas ? route('saas.dashboard.index') : route('tenant.dashboard', ['tenant' => $tenant]),
-                'permission' => null,
-            ],
+        $menus = [
 
-            [
-                'name' => 'User Management',
-                'icon' => 'la la-users-cog',
-                'submenu' => [
-                    [
-                        'name' => 'Users',
-                        'url' => $isSaas ? route('saas.users.index') : route('tenant.users.index', ['tenant' => $tenant]),
-                        'permission' => 'users view',
-                    ],
-                    [
-                        'name' => 'Roles',
-                        'url' => $isSaas ? route('saas.roles.index') : route('tenant.roles.index', ['tenant' => $tenant]),
-                        'permission' => 'roles view',
-                    ],
-                    [
-                        'name' => 'Permissions',
-                        'url' => $isSaas ? route('saas.permissions.index') : route('tenant.permissions.index', ['tenant' => $tenant]),
-                        'permission' => 'permissions view',
-                    ],
-                ],
-            ],
+            self::item(
+                'Dashboard',
+                'la la-house-damage',
+                $isSaas
+                    ? route('saas.dashboard.index')
+                    : tenantRoute('dashboard')
+            ),
 
-            !$isSaas ? [
-                'name' => 'HR Management',
-                'icon' => 'la la-id-card',
-                'submenu' => [
-                    [
-                        'name' => 'Departments',
-                        'url' => route('tenant.departments.index'),
-                        'permission' => 'departments view',
-                    ],
-                    [
-                        'name' => 'Designations',
-                        'url' =>  route('tenant.designations.index'),
-                        'permission' => 'designations view',
-                    ],
-                    [
-                        'name' => 'Employees',
-                        'url' => route('tenant.employees.index'),
-                        'permission' => 'employees view',
-                    ],
-                    [
-                        'name' => 'Employee Address',
-                        'url' =>  route('tenant.employeeAddress.index'),
-                        'permission' => 'employeeAddress view',
-                    ],
-                ],
-            ] :null,
+            self::dropdown('User Management', 'la la-users-cog', [
 
-            !$isSaas ?  [
-                'name' => 'Asset Management',
-                'icon' => 'la la-box',
-                'submenu' => [
-                    [
-                        'name' => 'Assets',
-                        'url' => route('tenant.asset_assigns.index'),
-                        'permission' => 'asset_assigns view',
-                    ],
-                    [
-                        'name' => 'Asset Assign',
-                        'url' => route('tenant.assigns.index'),
-                        'permission' => 'assigns view',
-                    ],
-                ],
-            ] :null,
+                self::item(
+                    'Users',
+                    'la la-user',
+                    $isSaas
+                        ? route('saas.users.index')
+                        : tenantRoute('users.index'),
+                    'view_users'
+                ),
 
-            !$isSaas ? [
-                'name' => 'Projects',
-                'icon' => 'la la-project-diagram',
-                'url' =>  route('tenant.projects.index'),
-                'permission' => 'projects view',
-            ]:null,
+                self::item(
+                    'Roles',
+                    'la la-user-shield',
+                    $isSaas
+                        ? route('saas.roles.index')
+                        : tenantRoute('roles.index'),
+                    'view_roles'
+                ),
 
-          !$isSaas ? [
-            'name' => 'Reports',
-            'icon' => 'la la-chart-bar',
-            'url' => route('tenant.reports.index'),
-            'permission' => 'reports view',
-        ] : null,
+                self::item(
+                    'Permissions',
+                    'la la-key',
+                    $isSaas
+                        ? route('saas.permissions.index')
+                        : tenantRoute('permissions.index'),
+                    'view_permissions'
+                ),
 
-            [
-                'name' => 'Import',
-                'icon' => 'la la-file-import',
-                'url' => $isSaas ? route('saas.import.index') : route('tenant.import.index'),
-                'permission' => $isSaas ? null : 'import view',
-            ],
+            ]),
 
-            $isSaas ? [
-                'name' => 'Chat',
-               'icon' => 'la la-comment',
-                'url' => route('saas.chat.index', $auth_id),
-                'permission' => $isSaas ? null : 'chat view',
-            ]: null,
+            !$isSaas ? self::dropdown('HR Management', 'la la-id-card', [
 
-            $isSaas ? [
-                'name' => 'Tenant Management',
-                'icon' => 'la la-city',
-                'url' => route('saas.tenants.index'),
-                'permission' => 'tenants view',
-            ] : null,
+                self::item(
+                    'Departments',
+                    'la la-sitemap',
+                    tenantRoute('departments.index'),
+                    'view_hrs'
+                ),
+
+                self::item(
+                    'Designations',
+                    'la la-user-tag',
+                    tenantRoute('designations.index'),
+                    'view_hrs'
+                ),
+
+                self::item(
+                    'Employees',
+                    'la la-users',
+                    tenantRoute('employees.index'),
+                    'view_hrs'
+                ),
+
+                self::item(
+                    'Employee Address',
+                    'la la-map-marker',
+                    tenantRoute('employeeAddress.index'),
+                    'view_hrs'
+                ),
+
+            ], 'view_hrs') : null,
+
+            !$isSaas ? self::dropdown('Asset Management', 'la la-box', [
+
+                self::item(
+                    'Assets',
+                    'la la-boxes',
+                    tenantRoute('asset_assigns.index'),
+                    'view_assets'
+                ),
+
+                self::item(
+                    'Asset Assign',
+                    'la la-clipboard-check',
+                    tenantRoute('assigns.index'),
+                    'view_assets'
+                ),
+
+            ], 'view_assets') : null,
+
+            !$isSaas ? self::item(
+                'Projects',
+                'la la-project-diagram',
+                tenantRoute('projects.index'),
+                'view_projects'
+            ) : null,
+
+
+           self::dropdown('Leave Management', 'la la-users-cog', [
+               !$isSaas ? self::item(
+                    'Leave Types',
+                    'la la-leave-diagram',
+                    tenantRoute('leaveTypes.index'),
+                    'view_leave_types'
+                ) : null,
+                !$isSaas ? self::item(
+                    'Leave',
+                    'la la-leave-diagram',
+                    tenantRoute('leaves.index'),
+                    'view_leaves'
+                ) : null,
+
+
+            ]),
+
+
+            !$isSaas ? self::item(
+                'Reports',
+                'la la-chart-bar',
+                tenantRoute('reports.index'),
+                'view_reports'
+            ) : null,
+
+            self::item(
+                'Import',
+                'la la-file-import',
+                $isSaas
+                    ? route('saas.import.index')
+                    : tenantRoute('import.index'),
+                'view_imports'
+            ),
+
+            $isSaas ? self::item(
+                'Chat',
+                'la la-comment',
+                route('saas.chat.index', $authId)
+            ) : null,
+
+            $isSaas ? self::item(
+                'Tenant Management',
+                'la la-city',
+                route('saas.tenants.index'),
+                'view_tenants'
+            ) : null,
         ];
+
+        return array_values(array_filter($menus));
+    }
+
+    private static function item($name, $icon, $url, $permission = null)
+    {
+        return compact('name', 'icon', 'url', 'permission');
+    }
+
+    private static function dropdown($name, $icon, $submenu, $permission = null)
+    {
+        return compact('name', 'icon', 'submenu', 'permission');
     }
 }

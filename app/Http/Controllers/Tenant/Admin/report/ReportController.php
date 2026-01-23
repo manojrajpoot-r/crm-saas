@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Tenant\Admin\report;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Tenant\Report;
+use App\Models\Tenant\Employee;
 use App\Traits\UniversalCrud;
 use Carbon\Carbon;
 use App\Exports\ReportsExport;
@@ -22,11 +22,11 @@ class ReportController extends Controller
 
 public function list(Request $request)
 {
-    $query = Report::with('employee.department', 'employee.designation');
+    $query = Employee::with(['department','designation']);
 
     //  Date Range (highest priority)
     if ($request->from_date && $request->to_date) {
-        $query->whereBetween('report_date', [
+        $query->whereBetween('created_at', [
             Carbon::parse($request->from_date)->startOfDay(),
             Carbon::parse($request->to_date)->endOfDay()
         ]);
@@ -35,109 +35,49 @@ public function list(Request $request)
     //  Daily / Weekly / Monthly
     else {
         if ($request->filter_type === 'daily') {
-            $query->whereDate('report_date', now());
+            $query->whereDate('created_at', now());
         }
 
         if ($request->filter_type === 'weekly') {
-            $query->whereBetween('report_date', [
+            $query->whereBetween('created_at', [
                 now()->startOfWeek()->startOfDay(),
                 now()->endOfWeek()->endOfDay()
             ]);
         }
 
         if ($request->filter_type === 'monthly') {
-            $query->whereBetween('report_date', [
+            $query->whereBetween('created_at', [
                 now()->startOfMonth()->startOfDay(),
                 now()->endOfMonth()->endOfDay()
             ]);
         }
     }
 
-    return datatables()->of($query->orderBy('report_date','desc'))
+    return datatables()->of($query->orderBy('id','desc'))
         ->addIndexColumn()
 
         ->addColumn('employee_name', fn ($t) =>
-            optional($t->employee)->first_name
-                ? $t->employee->first_name.' '.$t->employee->last_name
+            optional($t->first_name)
+                ? $t->first_name.' '.$t->last_name
                 : '-'
         )
 
          ->addColumn('department_name', fn ($t) =>
-            optional($t->employee->department)->name ?? '-'
+            optional($t->department)->name ?? '-'
         )
 
             ->addColumn('designation_name', fn ($t) =>
-            optional($t->employee->designation)->name ?? '-'
+            optional($t->designation)->name ?? '-'
 
         )
 
 
-        ->addColumn('report_title', fn ($t) => $t->title)
-
-        ->addColumn('report_date', fn ($t) =>
-            Carbon::parse($t->report_date)->format('d M Y')
+        ->addColumn('created_at', fn ($t) =>
+            $this->formatDate($t->created_at)
         )
 
-      ->addColumn('status_btn', function ($t) {
-        if (!canAccess('reports status')) return '-'; $class = $t->status ? "btn-success" : "btn-danger"; $text = $t->status ? "Active" : "Inactive"; $url = route('tenant.reports.status', [ 'tenant' => currentTenant(), 'id' => $t->id ]);
-        return "<button class='btn btn-sm $class statusBtn' data-url='$url'>$text</button>"; })
-        ->rawColumns(['status_btn']) ->make(true);
+      ->make(true);
 }
-
-
-
-
-     // ===============================
-    // CREATE / STORE
-    // ===============================
-
-    public function store(Request $request)
-    {
-        return $this->saveData($request, Report::class);
-    }
-
-
-    // ===============================
-    // EDIT
-    // ===============================
-    public function edit($id)
-    {
-        $t = Report::find($id);
-
-        $json=[
-            "name" => $t->name,
-
-        ];
-        return response()->json($json);
-    }
-
-    // ===============================
-    // UPDATE
-    // ===============================
-
-    public function update(Request $request, $id)
-    {
-        return $this->saveData($request, Report::class, $id);
-    }
-
-
-
-    // ===============================
-    // DELETE
-    // ===============================
-    public function delete($id)
-    {
-        return $this->deleteData(Report::class,$id);
-    }
-
-
-    // ===============================
-    // STATUS
-    // ===============================
-    public function status($id)
-    {
-        return $this->toggleStatus(Report::class, $id);
-    }
 
 
  public function reportExport(Request $request)

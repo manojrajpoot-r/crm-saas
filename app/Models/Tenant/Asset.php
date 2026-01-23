@@ -14,6 +14,9 @@ class Asset extends BaseTenantModel
         return $this->hasMany(AssignedAsset::class);
     }
 
+
+
+
     public static function rules($id = null)
     {
         return [

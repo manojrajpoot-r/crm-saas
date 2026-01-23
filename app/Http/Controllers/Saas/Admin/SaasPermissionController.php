@@ -22,35 +22,36 @@ class SaasPermissionController extends Controller
         return datatables()->of($query)
             ->addIndexColumn()
 
-            ->addColumn('status_btn', function ($t) {
+                 ->addColumn('status_btn', function ($t) {
 
-                if (!canAccess('permissions status')) {
-                    return '-';
-                }
+                    if (!canAccess('change_permissions_status')) {
+                        return '-';
+                    }
 
-                $class = $t->status ? "btn-success" : "btn-danger";
-                $text  = $t->status ? "Active" : "Inactive";
-                $url   = route('saas.permissions.status', $t->id);
+                    $class = $t->status ? 'btn-success' : 'btn-danger';
+                    $text  = $t->status ? 'Active' : 'Inactive';
+                    $url   = route('saas.permissions.status', $t->id);
 
-                return "<button class='btn btn-sm $class statusBtn' data-url='$url'>$text</button>";
-            })
+                    return "<button class='btn btn-sm {$class} statusBtn' data-url='{$url}'>{$text}</button>";
+                })
 
-            ->addColumn('action', function ($t) {
 
-                $buttons = '';
+                 ->addColumn('action', function ($t) {
 
-                if (canAccess('permissions edit')) {
-                    $editUrl = route('saas.permissions.edit', $t->id);
-                    $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='$editUrl'>Edit</button> ";
-                }
+                    $buttons = '';
 
-                if (canAccess('permissions delete')) {
-                    $deleteUrl = route('saas.permissions.delete', $t->id);
-                    $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='$deleteUrl'>Delete</button> ";
-                }
+                    if (canAccess('edit_permissions')) {
+                        $editUrl = route('saas.permissions.edit', $t->id);
+                        $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='{$editUrl}'>Edit</button> ";
+                    }
 
-                return $buttons ?: '-';
-            })
+                    if (canAccess('delete_permissions')) {
+                        $deleteUrl = route('saas.permissions.delete', $t->id);
+                        $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='{$deleteUrl}'>Delete</button> ";
+                    }
+
+                    return $buttons ?: '-';
+                })
 
             ->rawColumns(['status_btn', 'action'])
             ->make(true);

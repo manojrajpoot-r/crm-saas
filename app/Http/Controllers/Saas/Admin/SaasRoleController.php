@@ -22,43 +22,47 @@ class SaasRoleController extends Controller
         return datatables()->of($query)
             ->addIndexColumn()
 
-            ->addColumn('status_btn', function ($t) {
+          ->addColumn('status_btn', function ($t) {
+            if (!canAccess('change_roles_status')) {
+                return "<span class='badge bg-secondary'>No Access</span>";
+            }
 
-                if (!canAccess('roles status')) {
-                    return "<span class='badge bg-secondary'>No Access</span>";
-                }
+            $class = $t->status ? 'btn-success' : 'btn-danger';
+            $text  = $t->status ? 'Active' : 'Inactive';
+            $url   = route('saas.roles.status', $t->id);
 
-                $class = $t->status ? "btn-success" : "btn-danger";
-                $text  = $t->status ? "Active" : "Inactive";
-                $url   = route('saas.roles.status', $t->id);
+            return "<button class='btn btn-sm {$class} statusBtn' data-url='{$url}'>{$text}</button>";
+        })
 
-                return "<button class='btn btn-sm $class statusBtn' data-url='$url'>$text</button>";
-            })
 
             ->addColumn('action', function ($t) {
 
                 $buttons = '';
 
-                if (canAccess('roles edit')) {
+                if (canAccess('edit_roles')) {
                     $buttons .= "<button class='btn btn-info btn-sm editBtn'
-                                data-url='".route('saas.roles.edit',$t->id)."'>
-                                Edit</button> ";
+                                    data-url='".route('saas.roles.edit', $t->id)."'>
+                                    Edit
+                                </button> ";
                 }
 
-                if (canAccess('roles delete')) {
+                if (canAccess('delete_roles')) {
                     $buttons .= "<button class='btn btn-danger btn-sm deleteBtn'
-                                data-url='".route('saas.roles.delete',$t->id)."'>
-                                Delete</button> ";
+                                    data-url='".route('saas.roles.delete', $t->id)."'>
+                                    Delete
+                                </button> ";
                 }
 
-                if (canAccess('roles permission')) {
-                    $buttons .= "<a href='".route('saas.roles.permissions',$t->id)."'
-                                class='btn btn-primary btn-sm'>
-                                Permission</a> ";
+                if (canAccess('assign_roles_permissions')) {
+                    $buttons .= "<a href='".route('saas.roles.permissions', $t->id)."'
+                                    class='btn btn-primary btn-sm'>
+                                    Permissions
+                                </a> ";
                 }
 
                 return $buttons ?: "<span class='badge bg-secondary'>No Action</span>";
             })
+
 
             ->rawColumns(['status_btn','action'])
             ->make(true);
