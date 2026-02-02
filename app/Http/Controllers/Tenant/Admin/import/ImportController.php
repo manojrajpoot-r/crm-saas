@@ -15,7 +15,7 @@ use App\Imports\UsersImport;
 use App\Traits\UniversalCrud;
 class ImportController extends Controller
 {
-use UniversalCrud;
+    use UniversalCrud;
     public function import_page()
     {
         $tenants = Tenant::all();

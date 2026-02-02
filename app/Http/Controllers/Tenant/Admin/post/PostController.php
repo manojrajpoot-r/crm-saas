@@ -15,14 +15,9 @@ class PostController extends Controller
 
     public function index(Request $request)
     {
-        $id = base64_decode($request->id);
-        $project = Project::findOrFail($id);
-
-        $posts = Post::with('uploader')
-            ->where('project_id', $project->id)
-            ->latest()
-            ->paginate(10);
-
+        $re_id= base64_decode($request->id);
+        $project = Project::findOrFail($re_id);
+        $posts = Post::with('uploader')->where('project_id', $re_id)->latest()->paginate(10);
         if ($request->ajax()) {
             return view('tenant.admin.posts.table', compact('posts'))->render();
         }

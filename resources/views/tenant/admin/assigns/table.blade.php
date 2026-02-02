@@ -2,9 +2,10 @@
     <thead>
         <tr>
             <th>#</th>
-            <th>Employee</th>
-            <th>Asset</th>
+            <th>Employee Name</th>
+            <th>Asset Name</th>
             <th>Assigned Date</th>
+            <th>Status</th>
             <th>Action</th>
         </tr>
     </thead>
@@ -14,13 +15,14 @@
         <tr>
             <td>{{ $assignedAssets->firstItem() + $key }}</td>
 
-                <td>{{ $t->employee_name }}</td>
+            <td>{{ $t->employee_name }}</td>
             <td>{{ $t->asset_name }}</td>
+             <td>{{ format_date($t->assigned_date) }}</td>
 
             <td>
                 @if($t->is_assigned)
                     <button class="btn btn-sm btn-danger statusBtn"
-                        data-url="{{ tenantRoute('assigns.status', $t->id) }}">
+                        data-url="{{ tenantRoute('assigns.status', null,$t->id) }}">
                         Return
                     </button>
                 @else
@@ -28,16 +30,11 @@
                 @endif
             </td>
 
-
-            {{-- ASSIGNED DATE --}}
-            <td>{{ $t->assigned_date }}</td>
-
-            {{-- ACTION --}}
             <td>
                 @if($t->status == 1)
                     <button
                         class="btn btn-sm btn-danger statusBtn"
-                        data-url="{{ tenantRoute('assigns.status', $t->id) }}">
+                        data-url="{{ tenantRoute('assigns.status', null,$t->id) }}">
                         Return
                     </button>
                 @else

@@ -11,7 +11,12 @@ class TenantUserController extends Controller
 
     public function index(Request $request)
     {
-        $users = TenantUser::with('role')->latest()->paginate(10);
+        $query = TenantUser::with('role');
+         if ($request->search) {
+                $query->where('name', 'like', '%' . $request->search . '%');
+        }
+        $users = $query->latest()->paginate(10);
+
         $roles = Role::select('id','name')->get();
         if ($request->ajax()) {
             return view('tenant.admin.tenant-users.table', compact('users'))->render();

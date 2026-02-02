@@ -9,21 +9,22 @@ use App\Models\Tenant\Permission;
 class RolePermissionController extends Controller
 {
 
-   public function editPermission(Request $request)
+public function editPermission(Request $request, $id)
 {
-    $role = Role::findOrFail($request->id);
+    $role = Role::findOrFail($id);
 
-    //  related permissions only
     $allPermissions = Permission::where('status', 1)
-
         ->select('id', 'name', 'group')
         ->orderBy('group')
         ->get()
-        ->groupBy('group');   // module wise grouping
+        ->groupBy('group');
 
     $rolePermissions = $role->permissions->pluck('id')->toArray();
 
-    return view('tenant.admin.roles.permissions', compact('role','allPermissions','rolePermissions'));
+    return view(
+        'tenant.admin.roles.permissions',
+        compact('role','allPermissions','rolePermissions')
+    );
 }
 
 

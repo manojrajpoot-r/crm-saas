@@ -15,13 +15,13 @@
             </button>
 
         @endif
-           @include('tenant.includes.universal-pagination', [
-            'url' => tenantRoute('modules.list'),
-            'wrapperId' => 'moduleTable',
-            'content' => view('tenant.admin.modules.table', [
-            'modules' => \App\Models\Tenant\ProjectModule::latest()->paginate(10)
+          @include('tenant.includes.universal-pagination', [
+                'url' => tenantRoute('modules.index', null,['id'=>base64_encode($project->id)]),
+                'wrapperId' => 'moduleTable',
+                'content' => view('tenant.admin.modules.table', [
+                    'modules' => $modules
+                ])
             ])
-        ])
 
     </div>
 </div>

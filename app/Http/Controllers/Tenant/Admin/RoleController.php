@@ -10,21 +10,19 @@ class RoleController extends Controller
 {
        use UniversalCrud;
 
-  public function index(Request $request)
-    {
-        $roles = Role::latest()->paginate(10);
+ public function index(Request $request)
+{
+    $roles = Role::latest()->paginate(10);
 
-        if ($request->ajax()) {
-            return view('tenant.admin.roles.table', compact('roles'))->render();
-        }
-
-        return view('tenant.admin.roles.index');
+    if ($request->ajax()) {
+        return view('tenant.admin.roles.table', compact('roles'))->render();
     }
 
+    return view('tenant.admin.roles.index', compact('roles'));
+}
 
-     // ===============================
-    // CREATE / STORE
-    // ===============================
+
+
 
     public function store(Request $request)
     {
@@ -33,9 +31,6 @@ class RoleController extends Controller
     }
 
 
-    // ===============================
-    // EDIT
-    // ===============================
     public function edit($id)
     {
 
@@ -47,9 +42,6 @@ class RoleController extends Controller
         return response()->json($json);
     }
 
-    // ===============================
-    // UPDATE
-    // ===============================
     public function update(Request $request, $id)
     {
 
@@ -57,9 +49,7 @@ class RoleController extends Controller
 
     }
 
-    // ===============================
-    // DELETE
-    // ===============================
+
     public function delete($id)
     {
         return $this->deleteData(
@@ -71,9 +61,6 @@ class RoleController extends Controller
     }
 
 
-    // ===============================
-    // STATUS
-    // ===============================
     public function status($id)
     {
         return $this->toggleStatus(Role::class, $id);

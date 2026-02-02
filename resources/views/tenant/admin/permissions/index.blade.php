@@ -12,10 +12,10 @@
 
         @endif
            @include('tenant.includes.universal-pagination', [
-            'url' => tenantRoute('permissions.list'),
+            'url' => tenantRoute('permissions.index', 'saas.permissions.index'),
             'wrapperId' => 'permissionsTable',
             'content' => view('tenant.admin.permissions.table', [
-                'permissions' => \App\Models\Tenant\Permission::latest()->paginate(10)
+            'permissions' => $permissions,
             ])
         ])
 

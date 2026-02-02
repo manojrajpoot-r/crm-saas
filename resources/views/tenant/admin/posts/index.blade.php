@@ -13,10 +13,10 @@
 
         @endif
            @include('tenant.includes.universal-pagination', [
-            'url' => tenantRoute('posts.list'),
+            'url' => tenantRoute('posts.index',  null,['id'=>base64_encode($project->id)]),
             'wrapperId' => 'postsTable',
             'content' => view('tenant.admin.posts.table', [
-            'posts' => \App\Models\Tenant\Post::latest()->paginate(10)
+            'posts' => $posts
             ])
         ])
 

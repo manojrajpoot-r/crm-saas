@@ -14,13 +14,10 @@ class CommentController extends Controller
 
     public function index(Request $request)
     {
-        $id = base64_decode($request->id);
-        $project = Project::findOrFail($id);
+        $req_id = base64_decode($request->id);
+        $project = Project::findOrFail($req_id);
 
-        $comments = Comment::with(['user','documents'])
-            ->where('project_id', $project->id)
-            ->latest()
-            ->paginate(10);
+        $comments = Comment::with(['user','documents'])->where('project_id', $req_id)->latest()->paginate(10);
 
         if ($request->ajax()) {
             return view('tenant.admin.comments.table', compact('comments'))->render();

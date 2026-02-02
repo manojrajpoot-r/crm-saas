@@ -12,43 +12,27 @@ class TenantMiddleware
     public function handle($request, Closure $next)
     {
         $host = $request->getHost();
-        $subdomain = explode('.', $host)[0];
 
-        // SaaS / main domains (no tenant)
-        if (in_array($subdomain, ['crm', 'www', 'localhost'])) {
+        // SaaS
+        if ($host === 'crm.saas.local') {
             config(['saas.current_tenant' => null]);
             return $next($request);
         }
 
-        // Domain lookup
-        $domain = Domain::where('domain', $host)->first();
-
-        if (!$domain) {
-            abort(404, 'Tenant domain not found.');
-        }
-
-        if (!$domain->is_active) {
-            abort(403, 'This tenant is disabled.');
-        }
-
-        // Tenant lookup
-        $tenant = Tenant::where('id', $domain->tenant_id)
-            ->where('status', 1)
+        $domain = Domain::where('domain', $host)
+            ->where('is_active', 1)
             ->first();
 
-        if (!$tenant) {
-            abort(403, 'Tenant inactive.');
-        }
+        abort_if(!$domain, 404, 'Tenant domain not found');
 
-        // Switch database
-        config([
-            'database.connections.tenant.database' => $tenant->database
-        ]);
+        $tenant = Tenant::where('id', $domain->tenant_id)
+            ->where('status', 1)
+            ->firstOrFail();
 
+        config(['database.connections.tenant.database' => $tenant->database]);
         DB::purge('tenant');
         DB::reconnect('tenant');
 
-        // Store tenant globally
         config(['saas.current_tenant' => $tenant]);
 
         return $next($request);

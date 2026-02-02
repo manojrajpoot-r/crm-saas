@@ -66,14 +66,14 @@
             <td>
                 @if(canAccess('edit_tasks'))
                     <button class="btn btn-info btn-sm editBtn"
-                        data-url="{{ tenantRoute('tasks.edit',$t->id) }}">
+                        data-url="{{ tenantRoute('tasks.edit',null,['id'=>$t->id]) }}">
                         Edit
                     </button>
                 @endif
 
                 @if(canAccess('delete_tasks'))
                     <button class="btn btn-danger btn-sm deleteBtn"
-                        data-url="{{ tenantRoute('tasks.delete',$t->id) }}">
+                        data-url="{{ tenantRoute('tasks.delete',null,['id'=>$t->id]) }}">
                         Delete
                     </button>
                 @endif

@@ -48,6 +48,13 @@
 
 
 
+@php
+    $usersUrl = match (currentGuard()) {
+        'saas'   => route('saas.users.index'),
+        'tenant' => tenantRoute('users.index'),
+        default  => '',
+    };
+@endphp
 
 
 <script>
@@ -136,6 +143,15 @@
                                 return { id, name };
                             });
                     }
+
+                else if (raw.startsWith('radio:')) {
+                        type = 'radio';
+                        options = raw.replace('radio:', '').split(',').map(o => {
+                            let [value, label] = o.split('|');
+                            return { value, label };
+                        });
+                    }
+
                     else {
                         type = raw;
                     }
@@ -157,7 +173,7 @@
                                 ${options.map(opt => `
                                     <option value="${opt.id}"
                                         ${Array.isArray(value) && value.includes(opt.id) ? 'selected' : ''}>
-                                        ${opt.name} ${opt.name}
+                                        ${opt.name}
                                     </option>
                                 `).join('')}
                             </select>
@@ -165,12 +181,14 @@
                     `;
                 }
 
+
+
                 // ---------- SINGLE SELECT ----------
                 else if (type === 'select') {
                     html = `
                         <div class="mb-3">
                             <label>${label}</label>
-                            <select name="${key}" class="form-control select2">
+                            <select name="${key}" class="form-control select2 leave_type_id">
                                 <option value="">Select ${label}</option>
                                 ${options.map(opt => `
                                     <option value="${opt.id}" ${opt.id == value ? 'selected' : ''}>
@@ -228,11 +246,37 @@
                     html = `
                         <div class="mb-3">
                             <label>${label}</label>
-                            <input type="checkbox" name="${key}" class="form-check-input"
+                            <input type="checkbox" name="${key}" id="${key}" class="form-check-input"
                                 ${value ? 'checked' : ''}>
                         </div>
                     `;
                 }
+
+                // radio — INPUT se pehle
+                else if (type === 'radio') {
+
+                    let radios = options.map(opt => `
+                        <div class="form-check form-check-inline">
+                            <input type="radio"
+                                class="form-check-input"
+                                name="${key}"
+                                id="${key}"
+                                value="${opt.value}">
+                            <label class="form-check-label" for="${key}_${opt.value}">
+                                ${opt.label}
+                            </label>
+                        </div>
+                    `).join('');
+
+                    html = `
+                        <div class="mb-3">
+                            <label class="d-block">${label}</label>
+                            ${radios}
+                        </div>
+                    `;
+                }
+
+
 
 
                 // ---------- INPUT ----------
@@ -240,7 +284,7 @@
                     html = `
                         <div class="mb-3">
                             <label>${label}</label>
-                            <input type="${type}" name="${key}" class="form-control"
+                            <input type="${type}" name="${key}" id="${key}" class="form-control"
                                 value="${value}" ${readonly ? 'readonly' : ''}>
                         </div>
                     `;
@@ -336,8 +380,6 @@
             $.get(editUrl, function (res) {
                 let updateUrl = editUrl.replace('/edit/', '/update/');
                 $("#universalForm").attr("action", updateUrl);
-
-
                 loadForm(res.fields, "Edit Project");
 
                 // documents fields
@@ -389,14 +431,16 @@
         const STATUS_OPTIONS = {
             created: 'Created',
             working: 'Working',
+            completed: 'Completed',
             on_hold: 'On Hold',
-            finished: 'Finished',
-            maintenance: 'Maintenance',
-            delay: 'Delay',
-            handover: 'Handover',
-            discontinued: 'Discontinued',
-            inactive: 'Inactive'
+            cancelled: 'Cancelled',
+            pending: 'Pending',
+            closed: 'Closed',
+            resolved: 'Resolved',
+            reopened: 'Reopened',
+            in_progress: 'In Progress'
         };
+
         let STATUS_UPDATE_URL = '';
 
         $(document).on('click', '.openStatusModal', function () {
@@ -419,7 +463,7 @@
             let status = $('#globalStatusSelect').val();
             $.post(STATUS_UPDATE_URL, { status: status }, function () {
                 $('#globalStatusModal').modal('hide');
-                $('.dataTable').DataTable().ajax.reload(null, false);
+                $('#tableBody').load(window.location.href + ' #tableBody > *');
                 toastr.success('Status updated');
 
             }).fail(function (xhr) {
@@ -459,59 +503,9 @@
                 initModalPlugins('#globalModal');
         });
 
-        //view Comment /////////////////////
-        // $(document).on('click', '.viewComments', function () {
-
-        //     let url = $(this).data('url');
-
-        //     $('#commentsModalBody').html(`
-        //         <div class="text-center text-muted">Loading comments...</div>
-        //     `);
-
-        //     $.get(url, function (comments) {
-
-        //         let html = '';
-        //         if (comments.length === 0) {
-        //             html = `<div class="text-center text-muted">No comments found</div>`;
-        //         } else {
-        //             comments.forEach(c => {
-        //             html += `
-        //                 <div class="border rounded p-2 mb-2">
-        //                     <div class="d-flex justify-content-between">
-        //                         <strong>${c.user.name}</strong>
-        //                         <small class="text-muted">${c.created_at}</small>
-        //                     </div>
-
-        //                     <div class="mt-1">${c.comment}</div>
-
-        //                     ${
-        //                         c.documents && c.documents.length
-        //                         ? `<div class="mt-2 d-flex flex-wrap gap-2">
-        //                             ${c.documents.map(d => `
-        //                                 <a href="${d.url}" download
-        //                                 class="border rounded p-2 text-center"
-        //                                 style="width:90px">
-        //                                     <img src="${d.icon}" width="28">
-        //                                     <div class="small text-truncate">${d.name}</div>
-        //                                 </a>
-        //                             `).join('')}
-        //                         </div>`
-        //                         : ''
-        //                     }
-        //                 </div>
-        //             `;
-
-        //             });
-        //         }
-
-        //         $('#commentsModalBody').html(html);
-        //         $('#openModalBody').modal('show');
-        //     });
-        // });
 
 
-
-        //view post //////////////////////////////////////////
+        //view post
        $(document).on('click', '.universalViewDetails', function () {
             let url = $(this).data('url');
 
@@ -550,6 +544,22 @@
         });
 
 
+
+
+        // ===========================================================
+        // leave Show data
+        // =========================================================
+        $(document).on('click','.viewBtn',function(){
+            let url = $(this).data('url');
+
+            $('#commonModalTitle').text('Leave Details');
+            $('#commonModalBody').html('<div class="text-center">Loading...</div>');
+            $('#commonDetailsModal').modal('show');
+
+            $.get(url,function(res){
+                $('#commonModalBody').html(res);
+            });
+        });
 
 
 
@@ -634,7 +644,7 @@
 
                     $("#globalModal").modal("hide");
                     if (typeof table !== "undefined") {
-                        table.ajax.reload(null, false);
+                          $('#tableBody').load(window.location.href + ' #tableBody > *');
                     }
                 },
 
@@ -688,10 +698,50 @@
                         }
 
                         toastr.success("status update!");
-                        table.ajax.reload(null, false);
+                         $('#tableBody').load(window.location.href + ' #tableBody > *');
                     });
 
                 }
+            });
+        });
+
+        // =======================
+        // STATUS BUTTON APPROVED REJECTED
+        // =======================
+        $(document).on("click", ".actionBtn", function () {
+            let btn = $(this);
+            let url = btn.data("url");
+            let status = btn.data("status");
+
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Do you want to change the status?",
+                icon: "warning",
+                input: 'textarea',
+                inputLabel: 'Remark (optional)',
+                inputPlaceholder: 'Enter remark here...',
+                showCancelButton: true,
+                confirmButtonText: "Yes, Change!",
+                cancelButtonText: "Cancel"
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $.post(url, {
+                    status: status,
+                    remark: result.value
+                }, function (res) {
+
+                    if (res.status) {
+                        btn.closest('td').html(
+                            `<span class="badge bg-${status === 'approved' ? 'success' : 'danger'}">
+                                ${status.charAt(0).toUpperCase() + status.slice(1)}
+                            </span>`
+                        );
+                    }
+
+                    toastr.success("Status updated!");
+                    $('#tableBody').load(window.location.href + ' #tableBody > *');
+                });
             });
         });
 
@@ -711,46 +761,30 @@
                 if (result.isConfirmed) {
                     $.post(url, {}, function() {
                         toastr.success("Deleted!");
-                        table.ajax.reload(null, false);
+                         $('#tableBody').load(window.location.href + ' #tableBody > *');
                     });
                 }
             });
         });
 
-        // =======================
-        // DATATABLE LOADER
-        // =======================
-        // function loadDataTable(columns, url) {
+
+
+
+
+        // function loadDataTable(columns, url, extraData = {}) {
         //     $("#tableHead").html("");
-
-        //     $.each(columns, c => {
-        //         $("#tableHead").append(`<th>${c.title}</th>`);
-        //     });
-
-        //     table = $("#universalTable").DataTable({
+        //     $('#universalTable').DataTable({
         //         processing: true,
         //         serverSide: true,
-        //         ajax: url,
+        //         ajax: {
+        //             url: url,
+        //             data: function (d) {
+        //                 Object.assign(d, extraData);
+        //             }
+        //         },
         //         columns: columns
         //     });
         // }
-
-
-
-        function loadDataTable(columns, url, extraData = {}) {
-            $("#tableHead").html("");
-            $('#universalTable').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: url,
-                    data: function (d) {
-                        Object.assign(d, extraData);
-                    }
-                },
-                columns: columns
-            });
-        }
 
 
         // =======================
@@ -782,7 +816,7 @@
                 // =======================
 
                    function documentFieldRow(doc = null, isFirst = false) {
-                        // Agar document object hai, show file link aur remove button
+
                         let fileHtml = doc ? `<a href="${doc.file}" target="_blank">${doc.file.split('/').pop()}</a>` : '';
 
                         return `
@@ -803,20 +837,20 @@
                     }
 
                     function addDocumentField(target = '#modalBody', documents = []) {
-                        // Remove previous wrapper if any
+
                         $(target).find('#docWrapper').remove();
 
                         let wrapper = $('<div id="docWrapper"></div>');
 
                         if (documents.length > 0) {
-                            // Existing documents
+
                             documents.forEach(doc => {
                                 wrapper.append(documentFieldRow(doc, false));
                             });
-                            // Add one empty input at the end with + button
+
                             wrapper.append(documentFieldRow(null, true));
                         } else {
-                            // No documents, just one empty input with + button
+
                             wrapper.append(documentFieldRow(null, true));
                         }
 
@@ -1015,7 +1049,7 @@
 
 
 
-       // =======================
+        // =======================
         // Field Validation Employee
         // =======================
         function validateField(el) {
@@ -1086,6 +1120,105 @@
         });
 
 
+
+       // =======================
+        // Field Validation Start date to end Date
+        // =======================
+        $(document).on('focus change', '[name="start_date"]', function () {
+            let startDate = $(this).val();
+            let today = new Date().toISOString().split('T')[0];
+
+            $(this).attr('min', today);
+
+            if (startDate) {
+                $('[name="end_date"]').attr('min', startDate);
+            } else {
+                $('[name="end_date"]').attr('min', today);
+            }
+        });
+
+        $(document).on('focus', '[name="end_date"]', function () {
+            let startDate = $('[name="start_date"]').val();
+            let today = new Date().toISOString().split('T')[0];
+
+            $(this).attr('min', startDate ? startDate : today);
+        });
+
+
+
+
+       // =========================================
+        // Field Validation Start date to end Date
+        // =========================================
+            function show(fields) {
+                fields.forEach(f => {
+                    $('#' + f).closest('.mb-3').fadeIn(200);
+                });
+            }
+
+            function hide(fields) {
+                fields.forEach(f => {
+                    $('#' + f).closest('.mb-3').fadeOut(200);
+                });
+            }
+
+
+            $(document).on('change','[name="leave_type_id"]', function () {
+
+                let type = Number($(this).val());
+
+                if (type === 5 || type === 6) {
+                    show(['start_date','end_date']);
+                    hide(['session']);
+                    $('#total_days').val('');
+                }
+
+                if (type === 7 || type === 8) {
+                    show(['start_date','session']);
+                    hide(['end_date']);
+                    $('#total_days').val(type === 7 ? 0.5 : 0.25);
+                }
+            });
+
+
+        // =======================
+        // leave filetr
+        // =======================
+        $('#searchUser').on('keyup', function () {
+            loadLeaves(1);
+            loadUsers(1);
+        });
+        $('#filterMonth,#filterStatus').on('change', function () {
+            loadLeaves(1);
+        });
+        function loadLeaves(page = 1) {
+            $.get("{{ tenantRoute('leaves.index') }}", {
+                search: $('#searchUser').val(),
+                month: $('#filterMonth').val(),
+                status: $('#filterStatus').val(),
+                page: page
+            }, function (res) {
+                $('#leaveAccordion').html(res);
+            });
+        }
+
+
+            let usersUrl = "{{ $usersUrl }}";
+            $.get(usersUrl, {
+                search: $('#searchUser').val(),
+            }, function (res) {
+                console.log(res);
+            });
+
+
+        // =======================
+        // Hiliday description
+        // =======================
+        $(document).on('click', '.view-description', function () {
+            $('#commonModalTitle').text($(this).data('title'));
+            $('#commonModalBody').text($(this).data('description'));
+            $('#commonDetailsModal').modal('show');
+        });
 
 
 </script>

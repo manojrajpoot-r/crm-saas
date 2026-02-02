@@ -10,16 +10,16 @@ class SaasRoleController extends Controller
 {
      use UniversalCrud;
 
-    public function index(Request $request)
-    {
-        $roles = Role::latest()->paginate(10);
+ public function index(Request $request)
+{
+    $roles = Role::latest()->paginate(10);
 
-        if ($request->ajax()) {
-            return view('tenant.admin.roles.table', compact('roles'))->render();
-        }
-
-        return view('tenant.admin.roles.index');
+    if ($request->ajax()) {
+        return view('tenant.admin.roles.table', compact('roles'))->render();
     }
+
+    return view('tenant.admin.roles.index', compact('roles'));
+}
 
 
 

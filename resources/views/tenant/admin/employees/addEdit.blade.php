@@ -1,8 +1,10 @@
 @extends('tenant.layouts.tenant_master')
 
 @section('content')
+
 <div class="main-panel">
-    <div class="content ml-5">
+    <div class="content">
+
 
 
                 {{-- ====== TAB HEADERS ====== --}}
@@ -60,7 +62,7 @@
                 </ul>
 
 
-            <form id="universalForm" method="POST" action="{{ route('tenant.employees.store') }}">
+            <form id="universalForm" method="POST" action="{{ tenantRoute('employees.store') }}">
                 @csrf
                 <input type="hidden" name="id" value="{{ $employee->id ?? '' }}">
 
@@ -107,9 +109,10 @@
                 {{-- ====== SUBMIT BUTTON ====== --}}
 
 
-                   <div class="text-center mt-4 {{ isset($employee->id) ? '' : 'd-none' }}" id="submitBtnWrapper">
-                    <button type="submit" class="btn btn-primary px-5">
-                        {{ isset($employee->id) ? 'Update Employee' : 'Create Employee' }}
+                    <div class="text-center mt-4 {{ isset($employee->id) ? '' : 'd-none' }}" id="submitBtnWrapper">
+                        <button type="submit" id="formSubmitBtn" class="btn btn-primary px-5">
+                        <span class="btn-text">  {{ isset($employee->id) ? 'Update Employee' : 'Create Employee' }}</span>
+                        <span class="spinner-border spinner-border-sm d-none" role="status"></span>
                     </button>
                 </div>
 
@@ -121,45 +124,40 @@
 
 @endsection
 @push('scripts')
-
+  @include('tenant.includes.universal-scripts')
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function () {
 
-    const submitBtn = document.getElementById('submitBtnWrapper');
-    const isEdit = {{ isset($employee->id) ? 'true' : 'false' }};
+        const submitBtn = document.getElementById('submitBtnWrapper');
+        const isEdit = {{ isset($employee->id) ? 'true' : 'false' }};
 
-    // 🔥 Edit mode → button hamesha visible
-    if (isEdit) {
-        submitBtn?.classList.remove('d-none');
-        return;
-    }
-
-    // 🔥 Add mode → sirf Address tab par dikhe
-    function toggleButton(target) {
-        if (target === '#address') {
+        //  Edit mode → button hamesha visible
+        if (isEdit) {
             submitBtn?.classList.remove('d-none');
-        } else {
-            submitBtn?.classList.add('d-none');
+            return;
         }
-    }
 
-    const activeTab = document.querySelector('.nav-link.active');
-    if (activeTab) {
-        toggleButton(activeTab.getAttribute('data-bs-target'));
-    }
+        //  Add mode → sirf Address tab par dikhe
+        function toggleButton(target) {
+            if (target === '#address') {
+                submitBtn?.classList.remove('d-none');
+            } else {
+                submitBtn?.classList.add('d-none');
+            }
+        }
 
-    document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
-        tab.addEventListener('shown.bs.tab', function (e) {
-            toggleButton(e.target.getAttribute('data-bs-target'));
+        const activeTab = document.querySelector('.nav-link.active');
+        if (activeTab) {
+            toggleButton(activeTab.getAttribute('data-bs-target'));
+        }
+
+        document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function (e) {
+                toggleButton(e.target.getAttribute('data-bs-target'));
+            });
         });
     });
-});
-
-
-
 
 </script>
-
-    @include('tenant.includes.universal-scripts')
 @endpush

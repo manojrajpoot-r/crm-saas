@@ -11,11 +11,15 @@
           <li class="nav-item"><a class="nav-link" href="#pricing">Pricing</a></li>
           <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
            <li class="nav-item">
-           <a class="btn btn-primary"
-            href="{{ currentTenant() ? tenantRoute('login') : route('saas.login') }}">
-                {{ currentTenant() ? 'Tenant Login' : 'SAAS Login' }}
-            </a>
-
+          @if (currentTenant())
+    <a href="{{ tenantRoute('login', 'saas.web.login') }}" class="btn btn-primary">
+        Tenant Login
+    </a>
+@else
+    <a href="{{ route('saas.web.login') }}" class="btn btn-primary">
+        SAAS Login
+    </a>
+@endif
 
 
             </li>

@@ -33,7 +33,7 @@ input {
 <div class="card col-md-4 col-11">
     <h3 class="text-center mb-4 fw-bold">Welcome Back Tenant 👋</h3>
 
-<form method="POST" id="" action="{{  route('tenant.login.submit', currentTenant()) }}" class="ajaxForm">
+<form method="POST" id="" action="{{tenantRoute('login.submit') }}" class="ajaxForm">
     @csrf
         <div class="mb-3 position-relative">
             <input type="email" name="email" class="form-control" placeholder="Email">
@@ -52,9 +52,7 @@ input {
 
         <button type="submit" class="btn btn-primary">Login</button>
 
-        {{-- <p class="text-center mt-3">Create an account?
-                <a href="{{route("tenant.register")}}" class="fw-bold">Register</a>
-            </p> --}}
+
     </form>
 </div>
 

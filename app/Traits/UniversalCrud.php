@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Str;
 use App\Models\Tenant;
-
 use App\Models\Domain;
 use App\Models\Tenant\Employee;
 use App\Models\Tenant\EmployeeAddress;
@@ -25,7 +24,8 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Models\Tenant\TenantUser;
 use App\Models\Tenant\Role;
-
+use App\Mail\LeaveAppliedMail;
+use Illuminate\Support\Facades\Mail;
 trait UniversalCrud
 {
 
@@ -36,7 +36,7 @@ trait UniversalCrud
             return '';
         }
 
-        return Carbon::parse($date)->format('d F Y');
+        return Carbon::parse($date)->format('Y-m-d');
     }
 
     public function autoUpload(Request $request, $model, $id = null)
@@ -160,7 +160,7 @@ trait UniversalCrud
 
                     $rows[] = [
                         'name'  => $name,
-                        'group' => $data['group'][$key] ?? null,
+                        'group' => $data['group'] ?? null,
                     ];
                 }
 
@@ -214,69 +214,6 @@ trait UniversalCrud
 
 
     // TENANT SPECIAL STORE
-
-
-// public function saveTenant(Request $request)
-// {
-//     $validator = Validator::make($request->all(), [
-//         'name'   => 'required',
-//         'domain' => 'required|unique:domains,domain'
-//     ]);
-
-//     if ($validator->fails()) {
-//         return response()->json([
-//             'status' => 'error',
-//             'errors' => $validator->errors()
-//         ], 422);
-//     }
-
-//     $tenantId = (string) Str::uuid();
-//     $dbName   = 'tenant_' . strtolower(str_replace(' ', '_', $request->name));
-//     $slug     = Str::slug($request->name);
-
-//     $exists = DB::select(
-//         "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = ?",
-//         [$dbName]
-//     );
-
-//     if ($exists) {
-//         return response()->json([
-//             'status' => 'error',
-//             'message' => "Database `$dbName` already exists!"
-//         ], 409);
-//     }
-
-//     DB::statement("CREATE DATABASE `$dbName`");
-
-//     // Save tenant
-//     $tenant = Tenant::create([
-//         'id'       => $tenantId,
-//         'name'     => $request->name,
-//         'slug'     => $slug,
-//         'database' => $dbName,
-//     ]);
-
-//     // Save domain
-//     Domain::create([
-//         'domain'    => $request->domain,
-//         'tenant_id' => $tenantId,
-//     ]);
-
-//     // Run migration
-//     config(['database.connections.tenant.database' => $dbName]);
-
-//     Artisan::call('migrate', [
-//         '--database' => 'tenant',
-//         '--path'     => 'database/migrations/tenant',
-//         '--force'    => true
-//     ]);
-
-//     return response()->json([
-//         'success' => true,
-//         'message' => 'Tenant created successfully!',
-//         'database' => $dbName
-//     ]);
-// }
 
 public function saveTenant(Request $request)
 {
@@ -410,6 +347,8 @@ public function saveTenant(Request $request)
 public function saveEmployeeAll($request, $employeeId = null)
 {
     $validator = Validator::make($request->all(), [
+        'user_id'         => 'required|exists:tenant.users,id',
+        'employee_id'     => 'required|unique:tenant.employees,employee_id,' . $employeeId,
         'first_name'      => 'required',
         'last_name'       => 'required',
         'phone'           => 'required',
@@ -421,8 +360,9 @@ public function saveEmployeeAll($request, $employeeId = null)
         'join_date'       => 'required',
         'department_id'   => 'required',
         'designation_id'  => 'required',
-        'profile'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        'profile'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
     ]);
+
 
     if ($validator->fails()) {
         return response()->json([
@@ -433,9 +373,6 @@ public function saveEmployeeAll($request, $employeeId = null)
 
    try {
         DB::transaction(function () use ($request, $employeeId) {
-
-            $user = Auth::user();
-
             $data = $request->only([
                 'employee_id',
                 'first_name',
@@ -450,6 +387,7 @@ public function saveEmployeeAll($request, $employeeId = null)
                 'designation_id',
                 'report_to',
                 'join_date',
+                'user_id',
             ]);
 
             if ($request->hasFile('profile')) {
@@ -458,10 +396,10 @@ public function saveEmployeeAll($request, $employeeId = null)
                 $data['profile'] = $upload['profile'];
             }
 
+
           $employee =  Employee::updateOrCreate(
                 ['id' => $employeeId],
-                array_merge($data, ['user_id' => $user->id])
-            );
+                $data);
 
 
 

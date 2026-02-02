@@ -16,7 +16,7 @@ class AssignedAssetController extends Controller
     {
          $employees = Employee::select('id', 'first_name', 'last_name')->where('status', '1')->get();
          $assets = Asset::select('id', 'name')->get();
-        $assignedAssets = AssignedAsset::with(['employee', 'asset'])->latest();
+        $assignedAssets = AssignedAsset::with(['employee', 'asset'])->latest()->paginate(10);
           if ($request->ajax()) {
             return view('tenant.admin.assigns.table', compact('assets','employees','assignedAssets'))->render();
         }

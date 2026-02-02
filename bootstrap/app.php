@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\TenantAuthMiddleware;
 use App\Http\Middleware\TenantMiddleware;
+use App\Http\Middleware\RedirectIfUnauthenticated;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -18,7 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ])
     ->withMiddleware(function (Middleware $middleware) {
 
-        // ✅ FIX 1: CSRF EXCEPTION (AJAX LOGIN)
+       $middleware->redirectGuestsTo(fn () =>
+        isSaas()
+            ? route('saas.web.login')
+            : route('tenant.login', ['tenant' => currentTenant()])
+        );
         $middleware->validateCsrfTokens(except: [
             'tenant/login',
             'tenant/login/*',
@@ -28,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant-auth' => TenantAuthMiddleware::class,
             'tenant'      => TenantMiddleware::class,
+            'auth.smart' => RedirectIfUnauthenticated::class,
         ]);
 
         // ✅ FIX 3 (MOST IMPORTANT):

@@ -27,15 +27,15 @@
                     : '-' }}
             </td>
 
-            <td>{{ ($t->dob) }}</td>
-            <td>{{ ($t->join_date) }}</td>
+            <td>{{ format_date($t->dob) }}</td>
+            <td>{{ format_date($t->join_date) }}</td>
 
             {{-- STATUS --}}
             <td>
                 @if(canAccess('status_hrs'))
                     <button
                         class="btn btn-sm {{ $t->status ? 'btn-success':'btn-danger' }} statusBtn"
-                        data-url="{{ tenantRoute('employees.status',$t->id) }}">
+                        data-url="{{ tenantRoute('employees.status',null,['id'=>$t->id]) }}">
                         {{ $t->status ? 'Active':'Inactive' }}
                     </button>
                 @else
@@ -46,13 +46,13 @@
             {{-- ACTION --}}
             <td>
                 @if(canAccess('edit_hrs'))
-                    <a href="{{ tenantRoute('employees.edit',$t->id) }}"
+                    <a href="{{ tenantRoute('employees.edit',null,['id'=>$t->id]) }}"
                        class="btn btn-info btn-sm">Edit</a>
                 @endif
 
                 @if(canAccess('delete_hrs'))
                     <button class="btn btn-danger btn-sm deleteBtn"
-                        data-url="{{ tenantRoute('employees.delete',$t->id) }}">
+                        data-url="{{ tenantRoute('employees.delete',null,['id'=>$t->id]) }}">
                         Delete
                     </button>
                 @endif

@@ -13,10 +13,10 @@
 
         @endif
            @include('tenant.includes.universal-pagination', [
-            'url' => tenantRoute('leaveTypes.list'),
+            'url' => tenantRoute('leaveTypes.index',null,[]),
             'wrapperId' => 'leaveTypesTable',
             'content' => view('tenant.admin.leaveType.table', [
-            'leaveTypes' => \App\Models\Tenant\LeaveType::latest()->paginate(10)
+            'leaveTypes' => $leaveTypes,
             ])
         ])
 

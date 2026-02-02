@@ -36,7 +36,7 @@
 
                     <button
                         class="btn btn-sm {{ $class }} statusBtn"
-                        data-url="{{ tenantRoute('asset_assigns.status', $t->id) }}">
+                        data-url="{{ tenantRoute('asset_assigns.status',null, $t->id) }}">
                         {{ $text }}
                     </button>
                 @endif
@@ -47,14 +47,14 @@
             <td>
                 @if(canAccess('edit_assets'))
                     <button class="btn btn-info btn-sm editBtn"
-                        data-url="{{ tenantRoute('asset_assigns.edit',$t->id) }}">
+                        data-url="{{ tenantRoute('asset_assigns.edit',null,$t->id) }}">
                         Edit
                     </button>
                 @endif
 
                 @if(canAccess('delete_assets'))
                     <button class="btn btn-danger btn-sm deleteBtn"
-                        data-url="{{ tenantRoute('asset_assigns.delete',$t->id) }}">
+                        data-url="{{ tenantRoute('asset_assigns.delete',null,$t->id) }}">
                         Delete
                     </button>
                 @endif

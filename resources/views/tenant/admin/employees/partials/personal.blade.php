@@ -1,4 +1,5 @@
-   <div class="card mb-4">
+
+   <div class="card">
                     <div class="card-header fw-bold">
                         Employee Details {{ $employee ? '(Edit Employee)' : '(New Employee)' }}
                     </div>
@@ -59,8 +60,6 @@
                                                 <option value="{{ $department->id }}" {{ ($employee->department_id ?? '')==$department->id?'selected':'' }}>{{ $department->name }}</option>
                                             @endforeach
                                         @endif
-
-
                                     </select>
                             </div>
 
@@ -86,6 +85,21 @@
                                         <option value="{{ $manager->id }}"
                                             {{ old('report_to', $employee->report_to ?? '') == $manager->id ? 'selected' : '' }}>
                                             {{ $manager->first_name }} {{ $manager->last_name }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Users To Employee *</label>
+                            <select name="user_id" class="form-select">
+                                <option value="">No Users</option>
+                                @if(count($users) > 0)
+                                    @foreach($users as $user)
+                                        <option value="{{ $user->id }}"
+                                            {{ old('user_id', $employee->user_id ?? '') == $user->id ? 'selected' : '' }}>
+                                            {{ $user->name }}
                                         </option>
                                     @endforeach
                                 @endif

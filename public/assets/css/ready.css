@@ -6671,4 +6671,16 @@ body {
   }
 }
 
+
+.table-content{
+    margin-top: -25px;
+    margin-left: -261px;
+}
+#addBtn{
+
+    margin-left: -260px;
+    margin-top: -84px;
+  }
+
+
 /*# sourceMappingURL=ready.css.map */

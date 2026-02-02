@@ -12,16 +12,17 @@ class SaasUserController extends Controller
 
     use UniversalCrud;
 
-    public function index(Request $request)
-    {
-        $users = User::with('role')->latest()->paginate(10);
-        $roles = Role::select('id','name')->get();
-        if ($request->ajax()) {
-            return view('tenant.admin.tenant-users.table', compact('users'))->render();
-        }
+ public function index(Request $request)
+{
+    $users = User::with('role')->latest()->paginate(10);
+    $roles = Role::select('id','name')->get();
 
-        return view('tenant.admin.tenant-users.index', compact('roles','users'));
+    if ($request->ajax()) {
+        return view('tenant.admin.tenant-users.table', compact('users'))->render();
     }
+
+    return view('tenant.admin.tenant-users.index', compact('roles','users'));
+}
 
 
 

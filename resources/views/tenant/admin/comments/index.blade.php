@@ -7,14 +7,11 @@
  @include('tenant.admin.projects.tabs',['id'=>$project->id])
    @include('tenant.includes.universal-modal')
 
-
-
-
            @include('tenant.includes.universal-pagination', [
-            'url' => tenantRoute('comments.list'),
+            'url' => tenantRoute('comments.index', null, ['id' => base64_encode($project->id)]),
             'wrapperId' => 'commentsTable',
             'content' => view('tenant.admin.comments.table', [
-            'comments' => \App\Models\Tenant\Comment::latest()->paginate(10)
+            'comments' => $comments,
             ])
         ])
 
@@ -24,7 +21,5 @@
 
 @push('scripts')
     @include('tenant.includes.universal-scripts')
-
-
     </script>
 @endpush

@@ -12,14 +12,13 @@
             </button>
 
         @endif
-           @include('tenant.includes.universal-pagination', [
-            'url' => tenantRoute('tasks.list'),
-            'wrapperId' => 'tasksTable',
-            'content' => view('tenant.admin.tasks.table', [
-            'tasks' => \App\Models\Tenant\Task::latest()->paginate(10)
+         @include('tenant.includes.universal-pagination', [
+                'url' => tenantRoute('tasks.index', null, base64_encode($project->id)),
+                'wrapperId' => 'tasksTable',
+                'content' => view('tenant.admin.tasks.table', [
+                    'tasks' => $tasks
+                ])
             ])
-        ])
-
     </div>
 </div>
 @endsection
@@ -67,10 +66,10 @@
 
     $(document).on('click', '.changeStatus', function () {
 
-        let id   = $(this).data('id');
+       let id   = $(this).data('id');
         let type = $(this).data('type');
 
-        let url = "{{ tenantRoute('tasks.status', ':id') }}";
+        let url = "{{ tenantRoute('tasks.status', null, ':id') }}";
         url = url.replace(':id', id);
 
         $.post(url, {

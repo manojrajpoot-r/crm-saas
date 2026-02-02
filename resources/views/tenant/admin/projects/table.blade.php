@@ -44,7 +44,7 @@
 
                     <a href="javascript:void(0)"
                        class="text-primary openStatusModal"
-                       data-url="{{ tenantRoute('projects.status',$t->id) }}"
+                       data-url="{{ tenantRoute('projects.status',null,$t->id) }}"
                        data-current="{{ $t->status }}"
                        title="Change Status">
                         <i class="fa fa-edit"></i>
@@ -58,21 +58,21 @@
             <td>
                 @if(canAccess('edit_projects'))
                     <button class="btn btn-info btn-sm editBtn"
-                        data-url="{{ tenantRoute('projects.edit',$t->id) }}">
+                        data-url="{{ tenantRoute('projects.edit',null,$t->id) }}">
                         Edit
                     </button>
                 @endif
 
                 @if(canAccess('delete_projects'))
                     <button class="btn btn-danger btn-sm deleteBtn"
-                        data-url="{{ tenantRoute('projects.delete',$t->id) }}">
+                        data-url="{{ tenantRoute('projects.delete',null,$t->id) }}">
                         Delete
                     </button>
                 @endif
 
                 @if(canAccess('details_view_projects'))
-                    <a class="btn btn-primary btn-sm"
-                       href="{{ tenantRoute('projects.show', base64_encode($t->id)) }}">
+                 <a class="btn btn-primary btn-sm"
+                    href="{{ tenantRoute('projects.show', null, ['id' => base64_encode($t->id)])}}">
                         View
                     </a>
                 @endif

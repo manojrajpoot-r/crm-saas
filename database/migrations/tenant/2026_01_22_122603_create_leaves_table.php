@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('leaves', function (Blueprint $table) {
             $table->id();
-              $table->unsignedBigInteger('user_id'); // employee / user
             $table->unsignedBigInteger('leave_type_id');
             $table->date('from_date');
             $table->date('to_date');

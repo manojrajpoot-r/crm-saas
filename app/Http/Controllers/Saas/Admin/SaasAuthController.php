@@ -33,13 +33,10 @@ class SaasAuthController extends Controller
         ], 422);
     }
 
-
-
-
     public function logout()
     {
         Auth::guard('web')->logout();
-        return redirect()->route('saas.login');
+        return redirect()->route('saas.web.login');
     }
 
 

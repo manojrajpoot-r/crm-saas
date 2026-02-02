@@ -225,14 +225,14 @@ body {
 .main-panel {
   margin-top: 50px;
   position: relative;
-  width: calc(100% - 260px);
+  width: calc(100% - 290px);
   min-height: 100%;
   float: right;
   background: #f2f3f8;
   .content {
     padding: 30px 15px;
     min-height: calc(100% - 123px);
-    margin-top: 55px;
+    margin-top: 0px;
   }
 }
 

@@ -36,9 +36,14 @@ Route::domain('crm.saas.local')
     ->name('saas.')
     ->prefix('saas')
     ->group(function () {
-    Route::get('/login', [SaasAuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [SaasAuthController::class, 'login'])->name('login.submit');
-    Route::middleware(['auth:web'])->group(function () {
+
+        Route::get('/web-login', [SaasAuthController::class, 'showLogin'])
+            ->name('web.login');
+
+        Route::post('/webLogin', [SaasAuthController::class, 'login'])
+            ->name('login.submit');
+
+        Route::middleware('auth.smart')->group(function () {
 
             Route::get('/dashboard', [SaasDashboardController::class, 'index'])->name('dashboard.index');
             Route::post('/logout', [SaasAuthController::class, 'logout'])->name('logout');

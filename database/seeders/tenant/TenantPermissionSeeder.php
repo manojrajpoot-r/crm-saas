@@ -133,6 +133,34 @@ class TenantPermissionSeeder extends Seeder
             'create_teams',
             ],
 
+          'LeaveType' => [
+                'view_leave_type',
+                'create_leave_type',
+                'edit_leave_type',
+                'delete_leave_type',
+                'status_leave_type',
+
+            ],
+
+
+            'Leaves' => [
+                'view_all_leaves',
+                'view_self_leaves',
+                'create_leaves',
+                'edit_leaves',
+                'delete_leaves',
+                'status_leaves',
+                'report_leaves'
+            ],
+
+               'Holidays' => [
+                'view_holidays',
+                'create_holidays',
+                'edit_holidays',
+                'delete_holidays',
+                'status_holidays',
+
+            ],
 
 
 

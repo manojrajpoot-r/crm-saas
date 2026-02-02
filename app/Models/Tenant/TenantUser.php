@@ -68,6 +68,10 @@ class TenantUser extends Authenticatable
         return $this->role->name ?? 'N/A';
     }
 
+    public function leaves()
+    {
+        return $this->hasMany(Leave::class, 'user_id');
+    }
 
 
 }

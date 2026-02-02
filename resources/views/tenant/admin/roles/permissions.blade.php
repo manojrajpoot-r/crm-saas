@@ -57,16 +57,21 @@
 
         <hr>
 
-        @php
-            $action = match (currentGuard()) {
-                'saas'   => route('saas.roles.permissions.update', $role->id),
-                'tenant' => tenantRoute('roles.permissions.update', ['id' => $role->id]),
-                default  => '#',
-            };
-        @endphp
+            @php
+                $action = match (currentGuard()) {
+                    'saas'   => route('saas.roles.permissions.update', ['id' => $role->id]),
+                    'tenant' => tenantRoute(
+                                    'roles.permissions.update',
+                                    'saas.roles.permissions.update',
+                                    ['id' => $role->id]
+                                ),
+                    default  => '#',
+                };
+            @endphp
 
-        <form id="universalForm" method="POST" action="{{ $action }}">
-            @csrf
+            <form id="universalForm" method="POST" action="{{ $action }}">
+                @csrf
+
 
             <table class="table table-bordered mt-3" id="permissionsTable">
                 <thead class="table-light">

@@ -43,7 +43,7 @@ class TenantAuthController extends Controller
 
     public function showLoginForm()
     {
-        //  return view('front.auth.login');
+
          return view('tenant.auth.login');
     }
 

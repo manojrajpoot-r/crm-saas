@@ -20,7 +20,7 @@
                 @if(canAccess('designations_status'))
                     <button
                         class="btn btn-sm {{ $t->status ? 'btn-success':'btn-danger' }} statusBtn"
-                        data-url="{{ tenantRoute('designations.status',$t->id) }}">
+                        data-url="{{ tenantRoute('designations.status',null,['id'=>$t->id]) }}">
                         {{ $t->status ? 'Active':'Inactive' }}
                     </button>
                 @else
@@ -31,7 +31,7 @@
             <td>
                 @if(canAccess('edit_designations'))
                     <button class="btn btn-info btn-sm editBtn"
-                        data-url="{{ tenantRoute('designations.edit',$t->id) }}">
+                        data-url="{{ tenantRoute('designations.edit',null,['id'=>$t->id]) }}">
                         Edit
                     </button>
                 @endif
@@ -39,7 +39,7 @@
 
                 @if(canAccess('delete_departments'))
                     <button class="btn btn-danger btn-sm deleteBtn"
-                        data-url="{{ tenantRoute('designations.delete',$t->id) }}">
+                        data-url="{{ tenantRoute('designations.delete',null,['id'=>$t->id]) }}">
                         Delete
                     </button>
                 @endif

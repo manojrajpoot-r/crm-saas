@@ -2,130 +2,117 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>{{ currentTenant() ? 'Tenant Dashboard' : 'SAAS Dashboard' }}</title>
 
-
-     <title class="btn btn-primary ms-2">{{ currentTenant() ? 'Tenant Dashboard' : 'SAAS Dashboard' }}</title>
-
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no' name='viewport' />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
-
-    <!-- SweetAlert2 & Toastr CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.26.3/dist/sweetalert2.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
-
-
-
-
-    <!-- Icons -->
-   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome-font-awesome.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
-    {{-- select2 --}}
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />    <label for="multiSelect">Multi Select:</label>
-    {{-- summer note --}}
-    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
-
-    <!-- Custom CSS -->
+    <!-- Ready Dashboard CSS -->
     <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/ready.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/ready.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/demo.css') }}">
+
+    <link rel="stylesheet" href="{{ asset('assets/sass/ready/ready.scss') }}">
     <link rel="stylesheet" href="{{ asset('assets/sass/ready/_layouts.scss') }}">
 
+
+
+     <link rel="stylesheet" href="{{ asset('assets/sass/ready/components/_inputs.scss') }}">
+
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/line-awesome/1.3.0/line-awesome/css/line-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+
+
+    <!-- Bootstrap 5 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+
+    <!-- Plugins -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap4.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+   {{-- FullCalendar CSS --}}
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+
+
     <style>
-/* Ensure modal is relative for Select2 positioning */
+        .la {
+            font-family: "Line Awesome Free" !important;
+            font-weight: 900;
+        }
+
+        .sidebar i.la {
+            width: 26px;
+            text-align: center;
+            display: inline-block;
+        }
 
 
-.la {
-    font-family: "Line Awesome Free" !important;
-    font-weight: 900;
-}
-
-
-.sidebar i.la {
-    width: 26px;
-    text-align: center;
-    display: inline-block;
-}
-
-.sidebar a {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-
-
-
-        body { background: #f4f6f9; }
-        .sidebar { width: 240px; height: 100vh; background: #343a40; color: #fff; position: fixed; top: 0; left: 0; padding: 20px; }
-        .sidebar a { color: #fff; display: block; margin: 12px 0; text-decoration: none; padding: 8px 12px; border-radius: 6px; }
-        .sidebar a:hover { background: #495057; }
-        .content-area { margin-left: 260px; padding: 20px; }
-        .header { background: #fff; padding: 15px 20px; border-bottom: 1px solid #ddd; }
-
-
-
+        .form-check-inline .form-check-input {
+            position: static !important;
+            margin-top: 0;
+            margin-right: .3125rem;
+            margin-left: 0;
+        }
+        .form-check-input {
+            position: static !important;
+            margin-top: .3rem;
+            margin-left: 0.75rem;
+        }
 
 
     </style>
 </head>
 
+
+
+
+
 <body>
-    @include('tenant.layouts.tenant_sidebar')
 
-    <div class="wrapper">
-        <div class="main-header">
-            @include('tenant.layouts.tenant_header')
+<div class="wrapper">
 
-            <main class="mt-3">
-                @yield('content')
-            </main>
+    {{-- HEADER --}}
+   @include('tenant.layouts.tenant_header')
+
+    {{-- SIDEBAR --}}
+  @include('tenant.layouts.tenant_sidebar')
+
+    {{-- MAIN PANEL --}}
+    <div class="main-panel">
+        <div class="content">
+            @yield('content')
         </div>
     </div>
+ {{-- FOOTER --}}
+        @include('tenant.layouts.tenant_footer')
 
-    @include('tenant.layouts.tenant_footer')
-    @vite(['resources/js/app.js'])
-        <!-- jQuery -->
-        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</div>
+<!-- Core JS -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="{{ asset('assets/js/core/bootstrap.min.js') }}"></script>
 
-        <!-- Bootstrap 5 JS (ONLY ONE) -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Plugins -->
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+{{-- FullCalendar JS --}}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<!-- Bootstrap 5 JS (Bundle = collapse + dropdown included) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-        <!-- DataTables -->
-        <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-        <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap4.min.js"></script>
+<script src="{{ asset('assets/js/ready.min.js') }}"></script>
+<script src="{{ asset('assets/js/admin_common.js') }}"></script>
 
-        <!-- SweetAlert2 & Toastr -->
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-
-        <!-- Plugins -->
-        <script src="{{ asset('assets/js/plugin/jquery-ui-1.12.1.custom/jquery-ui.min.js') }}"></script>
-        <script src="{{ asset('assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
-        <script src="{{ asset('assets/js/plugin/bootstrap-toggle/bootstrap-toggle.min.js') }}"></script>
-
-        <!-- Select2 & Summernote -->
-        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
-
-        <!-- Custom -->
-        <script src="{{asset('assets/js/admin_common.js')}}"></script>
-
-
-
-
-
-
-
-    <!-- Universal JS includes for modal/form/datatable -->
-    @stack('scripts')
+@stack('scripts')
 </body>
 </html>

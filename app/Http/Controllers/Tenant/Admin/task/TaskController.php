@@ -15,27 +15,21 @@ class TaskController extends Controller
         use UniversalCrud;
     public function index(Request $request)
     {
-        $id = base64_decode($request->id);
-        $project = Project::findOrFail($id);
+        $req_id = base64_decode($request->id);
+        $project = Project::findOrFail($req_id);
 
-        $moduleList = ProjectModule::select('id','title')
-            ->where('project_id', $project->id)
-            ->get();
+        $moduleList = ProjectModule::select('id','title')->where('project_id', $req_id)->get();
 
         $userList = TenantUser::select('id','name')->get();
 
-        $tasks = Task::where('project_id', $project->id)
-            ->latest()
-            ->paginate(10);
+        $tasks = Task::where('project_id', $req_id)->latest()->paginate(10);
 
         if ($request->ajax()) {
             return view('tenant.admin.tasks.table', compact('tasks'))->render();
         }
 
-        return view(
-            'tenant.admin.tasks.index',
-            compact('project','moduleList','userList','tasks')
-        );
+        return view('tenant.admin.tasks.index',compact('project','moduleList','userList','tasks'));
+
 }
 
 

@@ -12,10 +12,10 @@
 
         @endif
            @include('tenant.includes.universal-pagination', [
-            'url' => tenantRoute('tenants.list'),
+            'url' => route('saas.tenants.index'),
             'wrapperId' => 'tenantsTable',
             'content' => view('tenant.admin.tenants.table', [
-                'tenants' => \App\Models\Tenant\Tenant::latest()->paginate(10)
+                'tenants' => $tenants,
             ])
         ])
 

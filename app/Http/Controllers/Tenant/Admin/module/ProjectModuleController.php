@@ -12,20 +12,17 @@ class ProjectModuleController extends Controller
 {
     use UniversalCrud;
 
-   public function index(Request $request)
+public function index(Request $request)
 {
-    $id = base64_decode($request->id);
-    $project = Project::findOrFail($id);
-
-    $modules = ProjectModule::where('project_id', $project->id)
-        ->latest()
-        ->paginate(10);
+    $re_id = base64_decode($request->id);
+    $project = Project::findOrFail($re_id);
+    $modules = ProjectModule::where('project_id', $re_id)->latest()->paginate(10);
 
     if ($request->ajax()) {
         return view('tenant.admin.modules.table', compact('modules'))->render();
     }
 
-    return view('tenant.admin.modules.index', compact('project','modules'));
+    return view('tenant.admin.modules.index', compact('project', 'modules'));
 }
 
 

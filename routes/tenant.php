@@ -21,10 +21,13 @@ use App\Http\Controllers\Tenant\Admin\post\PostController;
 use App\Http\Controllers\Tenant\Admin\report\ReportController;
 use App\Http\Controllers\Tenant\Admin\chat\ChatController;
 use App\Http\Controllers\Tenant\Admin\comment\CommentController;
+use App\Http\Controllers\tenant\admin\holiday\HolidayController;
+use App\Http\Controllers\tenant\admin\calendar\CalendarController;
 use App\Http\Controllers\Tenant\Admin\team\TeamController;
 use App\Http\Controllers\Tenant\Admin\import\ImportController;
 use App\Http\Controllers\Tenant\Admin\leave\LeaveController;
 use App\Http\Controllers\Tenant\Admin\leaveType\LeaveTypeController;
+
 
         // Route::get('/login', [TenantAuthController::class, 'showLoginForm'])->name('login');
 
@@ -33,22 +36,23 @@ use App\Http\Controllers\Tenant\Admin\leaveType\LeaveTypeController;
         // Route::get('/register', [TenantAuthController::class, 'showRegisterForm'])->name('register');
         // Route::post('/register', [TenantAuthController::class, 'register'])->name('register.submit');
 
-Route::prefix('{tenant}')
-    ->name('tenant.')
+// routes/tenant.php
+
+Route::name('tenant.')
     ->group(function () {
 
-        Route::get('/login', [TenantAuthController::class, 'showLoginForm'])->name('login');
-        Route::post('/login', [TenantAuthController::class, 'login'])->name('login.submit');
+        Route::get('/login', [TenantAuthController::class, 'showLoginForm'])
+            ->name('login');
 
-        Route::get('/register', [TenantAuthController::class, 'showRegisterForm'])->name('register');
-        Route::post('/register', [TenantAuthController::class, 'register'])->name('register.submit');
-
+        Route::post('/login', [TenantAuthController::class, 'login'])
+            ->name('login.submit');
 });
 
 
 
 
-    Route::middleware(['tenant', 'auth:tenant'])
+
+Route::middleware(['tenant', 'auth:tenant'])
     ->name('tenant.')
     ->group(function () {
 
@@ -66,7 +70,7 @@ Route::prefix('{tenant}')
         Route::moduleCRUD('EmployeeAddress', EmployeeAddressController::class, 'employeeAddress');
         Route::moduleCRUD('Reports', ReportController::class, 'reports');
         Route::moduleCRUD('Assets', AssetController::class, 'asset_assigns');
-        Route::moduleCRUD('AssignedAssets', AssignedAssetController::class, 'assigns');
+        Route::moduleCRUD('Assigned', AssignedAssetController::class, 'assigns');
         Route::moduleCRUD('Projects', ProjectController::class, 'projects');
         Route::moduleCRUD('ProjectModules', ProjectModuleController::class, 'modules');
         Route::moduleCRUD('Tasks', TaskController::class, 'tasks');
@@ -75,14 +79,15 @@ Route::prefix('{tenant}')
         Route::moduleCRUD('Teams', TeamController::class, 'teams');
         Route::moduleCRUD('Leaves', LeaveController::class, 'leaves');
         Route::moduleCRUD('LeaveTypes', LeaveTypeController::class, 'leaveTypes');
-
+        Route::moduleCRUD('Holidays', HolidayController::class, 'holidays');
+          Route::moduleCRUD('Calendars', CalendarController::class, 'calendars');
 
         Route::get('search-users', [TeamController::class, 'searchUsers'])->name('teams.searchUsers');
         Route::post('assign-team', [TeamController::class, 'assignTeam'])->name('teams.assign.emplyees');
         Route::get('reports/export', [ReportController::class, 'reportExport'])->name('reports.export');
         Route::get('zipcode/{zip}', [EmployeeController::class, 'zipcode']);
-        Route::get('roles/{id}/permissions', [RolePermissionController::class, 'editPermission'])->name('roles.permissions');
-        Route::post('roles/{id}/permissions', [RolePermissionController::class, 'updatePermissions'])->name('roles.permissions.update');
+        Route::get('roles-permissions/{id}', [RolePermissionController::class, 'editPermission'])->name('roles.permissions');
+        Route::post('roles-permissions/{id}', [RolePermissionController::class, 'updatePermissions'])->name('roles.permissions.update');
         Route::get('chat/{user?}', [ChatController::class, 'index'])->name('chat.index');
         Route::post('chat/send', [ChatController::class, 'send'])->name('chat.send');
         Route::get('import/users', [ImportController::class, 'import_page'])->name('import.users.index');
@@ -91,6 +96,7 @@ Route::prefix('{tenant}')
         Route::get('imports', [ImportController::class, 'list'])->name('imports.list');
         Route::get('imports/status/{id}', [ImportController::class, 'status']);
         Route::post('imports/retry/{id}', [ImportController::class, 'retry']);
+
 
 
 

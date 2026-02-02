@@ -10,49 +10,15 @@ class DepartmentController extends Controller
 {
         use UniversalCrud;
 
-    public function index()
+    public function index(Request $request)
     {
-        return view('tenant.admin.departments.index');
+        $departments = Department::latest()->paginate(10);
+        if ($request->ajax()) {
+            return view('tenant.admin.departments.table', compact('departments'))->render();
+        }
+        return view('tenant.admin.departments.index',compact('departments'));
     }
 
-    public function list()
-    {
-        $query = Department::latest();
-
-        return datatables()->of($query)
-            ->addIndexColumn()
-
-            ->addColumn('status_btn', function ($t) {
-                if (!canAccess('status_hrs')) {
-                    return '-';
-                }
-
-                $class = $t->status ? "btn-success" : "btn-danger";
-                $text  = $t->status ? "Active" : "Inactive";
-                $url   = tenantRoute('departments.status',$t->id);
-
-                return "<button class='btn btn-sm $class statusBtn' data-url='$url'>$text</button>";
-            })
-
-            ->addColumn('action', function ($t) {
-                $buttons = '';
-
-                if (canAccess('edit_hrs')) {
-                    $editUrl = tenantRoute('departments.edit',$t->id);
-                    $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='$editUrl'>Edit</button> ";
-                }
-
-                if (canAccess('delete_hrs')) {
-                    $deleteUrl = tenantRoute('departments.delete', $t->id);
-                    $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='$deleteUrl'>Delete</button> ";
-                }
-
-                return $buttons ?: '-';
-            })
-
-            ->rawColumns(['status_btn', 'action'])
-            ->make(true);
-    }
 
 
     public function store(Request $request)

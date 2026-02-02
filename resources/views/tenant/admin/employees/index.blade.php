@@ -6,16 +6,16 @@
    @include('tenant.includes.universal-modal')
        {{-- ADD BUTTON --}}
         @if(canAccess('create_employees'))
-            <a href="{{ tenantRoute('employees.edit')}}" class="btn btn-primary mb-3">
+            <a id="addBtn" href="{{ tenantRoute('employees.edit')}}" class="btn btn-primary mb-3">
                 Add Employee
             </a>
 
         @endif
            @include('tenant.includes.universal-pagination', [
-            'url' => tenantRoute('employees.list'),
+            'url' => tenantRoute('employees.index'),
             'wrapperId' => 'employeesTable',
             'content' => view('tenant.admin.employees.table', [
-            'employees' => \App\Models\Tenant\Employee::latest()->paginate(10)
+            'employees' => $employees,
             ])
         ])
 

@@ -55,7 +55,7 @@
                 @else
                     <button
                         class="btn btn-sm {{ $t->status ? 'btn-success':'btn-danger' }} statusBtn"
-                        data-url="{{ tenantRoute('leaveTypes.status',$t->id) }}">
+                        data-url="{{ tenantRoute('leaveTypes.status',null,$t->id) }}">
                         {{ $t->status ? 'Active':'Inactive' }}
                     </button>
                 @endif
@@ -65,14 +65,14 @@
             <td>
                 @if(canAccess('edit_leave_types'))
                     <button class="btn btn-info btn-sm editBtn"
-                        data-url="{{ tenantRoute('leaveTypes.edit',$t->id) }}">
+                        data-url="{{ tenantRoute('leaveTypes.edit',null,$t->id) }}">
                         Edit
                     </button>
                 @endif
 
                 @if(canAccess('delete_leave_types'))
                     <button class="btn btn-danger btn-sm deleteBtn"
-                        data-url="{{ tenantRoute('leaveTypes.delete',$t->id) }}">
+                        data-url="{{ tenantRoute('leaveTypes.delete',null,$t->id) }}">
                         Delete
                     </button>
                 @endif

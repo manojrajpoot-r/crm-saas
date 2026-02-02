@@ -2,9 +2,9 @@
 
 namespace App\Models\Tenant;
 
-
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Support\Facades\Auth;
 class Employee extends BaseTenantModel
 {
      protected $fillable = [
@@ -24,6 +24,8 @@ class Employee extends BaseTenantModel
         'join_date',
         'status',
         'profile',
+        'created_by',
+        'updated_by'
     ];
 
 
@@ -89,5 +91,28 @@ class Employee extends BaseTenantModel
     {
         return $this->hasOne(EmployeeUpiInfo::class);
     }
+
+    public function creator()
+    {
+        return $this->belongsTo(TenantUser::class, 'created_by');
+    }
+
+    public function updater()
+    {
+        return $this->belongsTo(TenantUser::class, 'updated_by');
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($user) {
+            $user->created_by = Auth::id();
+     });
+
+    static::updating(function ($user) {
+        $user->updated_by = Auth::id();
+    });
+
+    }
+
 
 }

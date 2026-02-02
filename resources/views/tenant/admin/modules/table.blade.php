@@ -30,7 +30,7 @@
                     @endphp
 
                     <button class="btn btn-sm {{ $class }} statusBtn"
-                        data-url="{{ tenantRoute('modules.status',$t->id) }}">
+                        data-url="{{ tenantRoute('modules.status',null,['id'=>$t->id]) }}">
                         {{ $text }}
                     </button>
                 @else
@@ -42,14 +42,14 @@
             <td>
                 @if(canAccess('module edit'))
                     <button class="btn btn-info btn-sm editBtn"
-                        data-url="{{ tenantRoute('modules.edit',$t->id) }}">
+                        data-url="{{ tenantRoute('modules.edit',null,['id'=>$t->id]) }}">
                         Edit
                     </button>
                 @endif
 
                 @if(canAccess('module delete'))
                     <button class="btn btn-danger btn-sm deleteBtn"
-                        data-url="{{ tenantRoute('modules.delete',$t->id) }}">
+                        data-url="{{ tenantRoute('modules.delete',null,['id'=>$t->id]) }}">
                         Delete
                     </button>
                 @endif

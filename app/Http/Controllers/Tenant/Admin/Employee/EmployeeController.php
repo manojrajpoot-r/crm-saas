@@ -9,6 +9,7 @@ use App\Traits\UniversalCrud;
 use App\Models\Tenant\Department;
 use App\Models\Tenant\Designation;
 use Illuminate\Support\Facades\Http;
+use App\Models\Tenant\TenantUser;
 class EmployeeController extends Controller
 {
      use UniversalCrud;
@@ -102,18 +103,19 @@ class EmployeeController extends Controller
         ])->findOrFail($id)
         : null;
 
-    $departments  = Department::all();
-    $designations = Designation::all();
+    $departments  = Department::where('status','1')->select('id', 'name')->get();
+    $designations = Designation::where('status','1')->select('id', 'name')->get();
 
     $managers = Employee::select('id', 'first_name', 'last_name')
         ->when($id, fn ($q) => $q->where('id', '!=', $id))
         ->get();
-
+    $users    =  TenantUser::where('master', '!=', '1')->where('status','1')->select('id','name')->get();
     return view('tenant.admin.employees.addEdit', [
         'employee'     => $employee,
         'departments'  => $departments,
         'designations' => $designations,
         'managers'     => $managers,
+        'users'        => $users,
     ]);
 }
 
@@ -123,7 +125,9 @@ class EmployeeController extends Controller
     // ===============================
     public function store(Request $request)
     {
+
         $id = $request->id;
+
        return $this->saveEmployeeAll($request, $id);
     }
 

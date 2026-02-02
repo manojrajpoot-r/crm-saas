@@ -29,106 +29,106 @@ class ProjectController extends Controller
 }
 
 
-    public function list()
-    {
-       $query = Project::with(['createdBy','documents'])->latest();
+    // public function list()
+    // {
+    //    $query = Project::with(['createdBy','documents'])->latest();
 
-        return datatables()->of($query)
-            ->addIndexColumn()
-            ->addColumn('created_by', function ($t) {
+    //     return datatables()->of($query)
+    //         ->addIndexColumn()
+    //         ->addColumn('created_by', function ($t) {
 
-                if (!$t->createdBy) {
-                    return '-';
-                }
+    //             if (!$t->createdBy) {
+    //                 return '-';
+    //             }
 
-                $user = $t->createdBy;
+    //             $user = $t->createdBy;
 
-                $profile = $user->profile
-                    ? asset('uploads/tenantusers/profile/' . $user->profile)
-                    : asset('images/default-profile.png');
+    //             $profile = $user->profile
+    //                 ? asset('uploads/tenantusers/profile/' . $user->profile)
+    //                 : asset('images/default-profile.png');
 
-                return "
-                    <div class='d-flex align-items-center gap-2'>
-                        <img src='{$profile}' width='35' height='35' style='border-radius:50%;object-fit:cover'>
-                        <span>{$user->name}</span>
-                    </div>
-                ";
-            })
-
-
-            ->addColumn('dates', function ($row) {
-                return $row->dates_column;
-            })
+    //             return "
+    //                 <div class='d-flex align-items-center gap-2'>
+    //                     <img src='{$profile}' width='35' height='35' style='border-radius:50%;object-fit:cover'>
+    //                     <span>{$user->name}</span>
+    //                 </div>
+    //             ";
+    //         })
 
 
-           ->addColumn('dead_line', function ($row) {
-                return $row->end_date
-                    ? $row->end_date->format('d M Y')
-                    : '-';
-            })
+    //         ->addColumn('dates', function ($row) {
+    //             return $row->dates_column;
+    //         })
 
 
-            ->addColumn('status_btn', function ($t) {
-
-                if (!canAccess('status_projects')) {
-                    return "<span class='badge bg-secondary'>No Access</span>";
-                }
-
-                $label = ucwords(str_replace('_', ' ', $t->status));
-                $url = tenantRoute('projects.status', $t->id);
-
-                return "
-                    <span class='badge bg-info me-2'>{$label}</span>
-                    <a href='javascript:void(0)'
-                    class='text-primary openStatusModal'
-                    data-url='{$url}'
-                    data-current='{$t->status}'
-                    title='Change Status'
-                    style='cursor:pointer'
-                    >
-                        <i class='fa fa-edit'></i>
-                    </a>
-                ";
-
-            })
+    //        ->addColumn('dead_line', function ($row) {
+    //             return $row->end_date
+    //                 ? $row->end_date->format('d M Y')
+    //                 : '-';
+    //         })
 
 
-            ->addColumn('action', function ($t) {
-                $buttons = '';
+    //         ->addColumn('status_btn', function ($t) {
 
-                if (canAccess('edit_projects')) {
-                    $editUrl = tenantRoute('projects.edit', $t->id);
-                    $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='$editUrl'>Edit</button> ";
-                }
+    //             if (!canAccess('status_projects')) {
+    //                 return "<span class='badge bg-secondary'>No Access</span>";
+    //             }
 
-                if (canAccess('delete_projects')) {
-                    $deleteUrl = tenantRoute('projects.delete',$t->id);
-                    $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='$deleteUrl'>Delete</button> ";
-                }
+    //             $label = ucwords(str_replace('_', ' ', $t->status));
+    //             $url = tenantRoute('projects.status', $t->id);
 
-              if (canAccess('details_view_projects')) {
+    //             return "
+    //                 <span class='badge bg-info me-2'>{$label}</span>
+    //                 <a href='javascript:void(0)'
+    //                 class='text-primary openStatusModal'
+    //                 data-url='{$url}'
+    //                 data-current='{$t->status}'
+    //                 title='Change Status'
+    //                 style='cursor:pointer'
+    //                 >
+    //                     <i class='fa fa-edit'></i>
+    //                 </a>
+    //             ";
 
-                $viewUrl = tenantRoute('projects.show', base64_encode($t->id));
-
-                $buttons .= "<a class='btn btn-primary btn-sm' href='{$viewUrl}'>View</a> ";
-            }
+    //         })
 
 
+    //         ->addColumn('action', function ($t) {
+    //             $buttons = '';
+
+    //             if (canAccess('edit_projects')) {
+    //                 $editUrl = tenantRoute('projects.edit', $t->id);
+    //                 $buttons .= "<button class='btn btn-info btn-sm editBtn' data-url='$editUrl'>Edit</button> ";
+    //             }
+
+    //             if (canAccess('delete_projects')) {
+    //                 $deleteUrl = tenantRoute('projects.delete',$t->id);
+    //                 $buttons .= "<button class='btn btn-danger btn-sm deleteBtn' data-url='$deleteUrl'>Delete</button> ";
+    //             }
+
+    //           if (canAccess('details_view_projects')) {
+
+    //             $viewUrl = tenantRoute('projects.show', base64_encode($t->id));
+
+    //             $buttons .= "<a class='btn btn-primary btn-sm' href='{$viewUrl}'>View</a> ";
+    //         }
 
 
-                return $buttons ?: 'No Action';
-            })
 
-            ->rawColumns([
-                'dates',
-                'status_btn',
-                'action',
-                'created_by',
-            ])
 
-                ->make(true);
+    //             return $buttons ?: 'No Action';
+    //         })
 
-    }
+    //         ->rawColumns([
+    //             'dates',
+    //             'status_btn',
+    //             'action',
+    //             'created_by',
+    //         ])
+
+    //             ->make(true);
+
+    // }
 
     // ===============================
     // CREATE / STORE
@@ -230,27 +230,20 @@ class ProjectController extends Controller
     ]);
 }
 
-    // ===============================
-    // UPDATE
-    // ===============================
+
 
     public function update(Request $request, $id)
     {
         return $this->saveData($request, Project::class, $id);
     }
 
-    // ===============================
-    // DELETE
-    // ===============================
+
     public function delete($id)
     {
         return $this->deleteData(Project::class,$id);
     }
 
 
-    // ===============================
-    // STATUS
-    // ===============================
 
 
     public function status(Request $request, $id)
@@ -260,13 +253,16 @@ class ProjectController extends Controller
 
 
 
-    public function show($id)
-    {
-         $decodedId = base64_decode($id, true);
-        $project = Project::with(['documents', 'createdBy'])->findOrFail($decodedId);
+public function show(Request $request, $id)
+{
+      $projectId = base64_decode($id);
+    $project = Project::with(['documents.uploadedBy', 'createdBy'])->findOrFail($projectId);
+    $created_by_name = $project->createdBy->name ?? 'N/A';
 
-        return view('tenant.admin.projects.show', compact('project'));
-    }
+    return view('tenant.admin.projects.show', compact('project','created_by_name'));
+}
+
+
 
 
 

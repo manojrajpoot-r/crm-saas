@@ -45,7 +45,7 @@
 
                 <div class="mt-1">
                     <button class="btn btn-sm btn-primary universalViewDetails"
-                        data-url="{{ tenantRoute('posts.show',$t->id) }}">
+                        data-url="{{ tenantRoute('posts.show',null,$t->id) }}">
                         View
                     </button>
                 </div>
@@ -58,7 +58,7 @@
                 @else
                     <button
                         class="btn btn-sm {{ $t->status ? 'btn-success':'btn-danger' }} statusBtn"
-                        data-url="{{ tenantRoute('posts.status',$t->id) }}">
+                        data-url="{{ tenantRoute('posts.status',null,$t->id) }}">
                         {{ $t->status ? 'Active':'Inactive' }}
                     </button>
                 @endif
@@ -68,14 +68,14 @@
             <td>
                 @if(canAccess('edit_discussion'))
                     <button class="btn btn-info btn-sm editBtn"
-                        data-url="{{ tenantRoute('posts.edit',$t->id) }}">
+                        data-url="{{ tenantRoute('posts.edit',null,$t->id) }}">
                         Edit
                     </button>
                 @endif
 
                 @if(canAccess('delete_discussion'))
                     <button class="btn btn-danger btn-sm deleteBtn"
-                        data-url="{{ tenantRoute('posts.delete',$t->id) }}">
+                        data-url="{{ tenantRoute('posts.delete',null,$t->id) }}">
                         Delete
                     </button>
                 @endif
@@ -93,7 +93,7 @@
                         Comment
                     </button>
 
-                    <a href="{{ tenantRoute('comments.index',['id'=>base64_encode($t->project_id)]) }}"
+                    <a href="{{ tenantRoute('comments.index',null,['id'=>base64_encode($t->project_id)]) }}"
                         class="btn btn-sm btn-outline-primary">
                         View Comments ({{ $comments }})
                     </a>
