@@ -1,36 +1,35 @@
-FROM php:8.3-apache
+FROM php:8.1-fpm
 
 RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    zip \
     libzip-dev \
+    libicu-dev \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
-    libicu-dev \
-    libonig-dev
+    libonig-dev \
+    libxml2-dev \
+    unzip \
+    git \
+    curl \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        zip \
+        intl \
+        gd \
+        mbstring \
+        exif \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg
-
-RUN docker-php-ext-install \
-    pdo_mysql \
-    zip \
-    intl \
-    gd \
-    mbstring \
-    exif
-
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
+
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader
 
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+EXPOSE 9000
 
-RUN chown -R www-data:www-data /var/www/html
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-
-EXPOSE 80
+CMD ["php-fpm"]
