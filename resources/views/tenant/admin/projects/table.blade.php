@@ -3,14 +3,14 @@
         <tr>
             <th>#</th>
             <th>Created By</th>
-            <th>Dates</th>
+            <th>Created Date</th>
             <th>Deadline</th>
             <th>Status</th>
             <th>Action</th>
         </tr>
     </thead>
 
-    <tbody>
+    <tbody id="tableBody">
         @foreach($projects as $key => $t)
         <tr>
             <td>{{ $projects->firstItem() + $key }}</td>
@@ -25,12 +25,12 @@
 
             {{-- DATES --}}
             <td>
-                {{ $t->dates_column }}
+                Created At :{{ format_date($t->created_at) }} <span>Actual Start Date: {{ format_date($t->actual_start_date) }}</span>
             </td>
 
             {{-- DEADLINE --}}
             <td>
-                {{ $t->end_date ? $t->end_date->format('d M Y') : '-' }}
+                {{ format_date($t->end_date)}}
             </td>
 
             {{-- STATUS --}}

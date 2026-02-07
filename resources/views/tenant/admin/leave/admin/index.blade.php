@@ -44,7 +44,8 @@
             'content' => view('tenant.admin.leave.admin.table', [
             'users' => $users,
             'userStats'=>$userStats,
-            'leaveTypes' =>$leaveTypes
+            'leaveTypes' =>$leaveTypes,
+            'leaveBalances'=>$leaveBalances,
             ])
         ])
 

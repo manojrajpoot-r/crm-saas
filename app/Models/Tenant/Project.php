@@ -38,20 +38,7 @@ class Project extends BaseTenantModel
         'is_archived' => 'boolean',
     ];
 
-    public function getDatesColumnAttribute()
-    {
-        $actual = $this->actual_start_date
-            ? 'Actual Start: ' . $this->formatDate($this->actual_start_date)
-            : '';
 
-        $created = 'Created At: ' . $this->formatDate($this->created_at);
-
-        $endDate =  $this->formatDate($this->end_date);
-
-
-
-        return trim($actual . '<br>' . $created);
-    }
 
 
     public function createdBy()

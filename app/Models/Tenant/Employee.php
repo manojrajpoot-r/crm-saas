@@ -69,22 +69,22 @@ class Employee extends BaseTenantModel
 
     public function emergencyContacts()
     {
-        return $this->hasMany(EmployeeEmergencyContact::class);
+        return $this->hasOne(EmployeeEmergencyContact::class);
     }
 
     public function familyInfos()
     {
-        return $this->hasMany(EmployeeFamilyInfo::class);
+        return $this->hasOne(EmployeeFamilyInfo::class);
     }
 
     public function educations()
     {
-        return $this->hasMany(EmployeeEducation::class);
+        return $this->hasOne(EmployeeEducation::class);
     }
 
     public function experiences()
     {
-        return $this->hasMany(EmployeeExperience::class);
+        return $this->hasOne(EmployeeExperience::class);
     }
 
     public function upiInfo()

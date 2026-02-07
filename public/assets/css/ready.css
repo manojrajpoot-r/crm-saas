@@ -6683,4 +6683,164 @@ body {
   }
 
 
+  .preview-img {
+    height: 60px;
+    width: 60px;
+    object-fit: cover;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 2px;
+}
+.dropzone {
+    border: 2px dashed #cfd4da;
+    border-radius: 8px;
+    padding: 25px;
+    text-align: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.dropzone:hover,
+.dropzone.dragover {
+    background: #f8f9fa;
+    border-color: #0d6efd;
+}
+
+.preview-img {
+    height: 60px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+
+/* Notification item */
+.notif-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f1f1;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.notif-item:hover {
+    background: #f8f9fa;
+}
+
+.notif-item.unread {
+    background: #f5f9ff;
+}
+
+/* Avatar wrapper */
+.notif-avatar-wrap {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+}
+
+/* Image avatar */
+.notif-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #e1e1e1;
+}
+
+/* Letter avatar */
+.notif-avatar-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4e73df, #224abe);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Content */
+.notif-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notif-content strong {
+    display: block;
+    font-size: 13px;
+    color: #333;
+}
+
+.notif-content p {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+}
+
+.profile-img-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+}
+
+.edit-icon {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: #0d6efd;
+    color: #fff;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+}
+.profile-img-wrapper {
+    position: relative;
+    width: 35px;
+    height: 35px;
+}
+
+.profile-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.status-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+.status-dot.online {
+    background: #28a745;
+}
+
+.status-dot.offline {
+    background: #dc3545;
+}
+
+
+
+
+
 /*# sourceMappingURL=ready.css.map */

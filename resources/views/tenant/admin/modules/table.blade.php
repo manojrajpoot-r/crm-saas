@@ -10,7 +10,7 @@
         </tr>
     </thead>
 
-    <tbody>
+    <tbody id="tableBody">
         @forelse($modules as $key => $t)
         <tr>
             <td>{{ $modules->firstItem() + $key }}</td>

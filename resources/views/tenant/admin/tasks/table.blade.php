@@ -10,59 +10,58 @@
         </tr>
     </thead>
 
-    <tbody>
+    <tbody id="tableBody">
         @forelse($tasks as $key => $t)
         <tr>
             <td>{{ $tasks->firstItem() + $key }}</td>
 
-            <td>{{ $t->title ?? '-' }}</td>
+            <td>{{ $t->name ?? '-' }}</td>
 
-            {{-- STATUS TEXT --}}
-            <td>
-                @php
-                    $map = [
-                        1 => ['Completed', 'success'],
-                        2 => ['Created', 'secondary'],
-                        3 => ['Declined', 'danger'],
-                    ];
 
-                    [$text, $color] = $map[$t->status] ?? ['Unknown', 'dark'];
-                @endphp
-
-                <span class="badge bg-{{ $color }}">{{ $text }}</span>
+           <td>
+                <span class="badge bg-{{ match($t->status){
+                    1=>'success',2=>'secondary',3=>'danger',default=>'dark'
+                } }}">
+                    {{ $t->status_text }}
+                </span>
             </td>
 
-            {{-- COMPLETE --}}
-            <td>
-                @if(!canAccess('status_tasks'))
-                    -
-                @elseif($t->is_completed)
-                    <span class="badge bg-success">Completed</span>
+
+
+        <td>
+                @if(canAccess('status_tasks'))
+
+                    @if($t->task_status == 0)
+                        <button class="btn btn-sm btn-primary actionBtnTask"
+                            data-url="{{ tenantRoute('tasks.status',null,['id'=>$t->id]) }}"
+                            data-type="start">Start</button>
+
+                    @elseif($t->task_status == 1)
+                        <button class="btn btn-sm btn-warning actionBtnTask"
+                            data-url="{{ tenantRoute('tasks.status',null,['id'=>$t->id]) }}"
+                            data-type="complete">Mark Complete</button>
+
+                    @elseif($t->task_status == 2)
+                        <button class="btn btn-sm btn-success actionBtnTask"
+                            data-url="{{ tenantRoute('tasks.status',null,['id'=>$t->id]) }}"
+                            data-type="approve">Approve</button>
+
+                        <button class="btn btn-sm btn-danger actionBtnTask"
+                            data-url="{{ tenantRoute('tasks.status',null,['id'=>$t->id]) }}"
+                            data-type="decline">Decline</button>
+                    @else
+                        <span class="badge bg-secondary">{{ $t->task_status_text }}</span>
+                    @endif
+
                 @else
-                    <button class="btn btn-sm btn-warning changeStatus"
-                        data-id="{{ $t->id }}"
-                        data-type="complete">
-                        Mark Complete
-                    </button>
+                    <span class="badge bg-secondary">No Access</span>
                 @endif
-            </td>
+        </td>
 
-            {{-- APPROVE --}}
-            <td>
-                @if(!canAccess('status_tasks'))
-                    -
-                @elseif($t->is_approved)
-                    <span class="badge bg-primary">Approved</span>
-                @else
-                    <button class="btn btn-sm btn-info changeStatus"
-                        data-id="{{ $t->id }}"
-                        data-type="approve">
-                        Approve
-                    </button>
-                @endif
-            </td>
 
-            {{-- ACTION --}}
+
+
+
             <td>
                 @if(canAccess('edit_tasks'))
                     <button class="btn btn-info btn-sm editBtn"

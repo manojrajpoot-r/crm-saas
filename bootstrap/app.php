@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\TenantAuthMiddleware;
 use App\Http\Middleware\TenantMiddleware;
 use App\Http\Middleware\RedirectIfUnauthenticated;
+use App\Http\Middleware\TenantMailConfig;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -29,15 +30,14 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant/login/*',
         ]);
 
-        // ✅ FIX 2: ALIASES
         $middleware->alias([
-            'tenant-auth' => TenantAuthMiddleware::class,
+            'permission' => TenantAuthMiddleware::class,
             'tenant'      => TenantMiddleware::class,
             'auth.smart' => RedirectIfUnauthenticated::class,
+            'tenant.mail' => TenantMailConfig::class,
         ]);
 
-        // ✅ FIX 3 (MOST IMPORTANT):
-        // Tenant DB MUST be set BEFORE auth/session
+
         $middleware->prependToGroup('web', [
             TenantMiddleware::class,
         ]);

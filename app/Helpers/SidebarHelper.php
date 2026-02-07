@@ -72,6 +72,26 @@ class SidebarHelper
                 tenantRoute('import.index', 'saas.import.index'),
                 'view_imports'
             ),
+            self::item(
+                'My Task',
+                'la la-user-shield',
+                tenantRoute('mytasks.index'),
+                'view_mytasks'
+            ),
+
+              self::item(
+                    'Report',
+                    'la la-user-shield',
+                    tenantRoute('employee.myreports.index'),
+                    'view_myreports'
+                ),
+
+              self::item(
+                    'Setting',
+                    'la la-user-shield',
+                    tenantRoute('settings.index', 'saas.settings.index'),
+                    'view_settings'
+                ),
 
             $isSaas ? self::item(
                 'Tenant Management',

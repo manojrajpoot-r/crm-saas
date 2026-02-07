@@ -20,6 +20,8 @@
             'leaves' => $leaves,
             'selfStats'=>$selfStats,
             'leaveTypes'=>$leaveTypes,
+            'leaveBalance'=>$leaveBalance,
+
             ])
         ])
 

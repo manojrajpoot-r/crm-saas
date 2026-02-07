@@ -26,6 +26,7 @@ use App\Models\Tenant\TenantUser;
 use App\Models\Tenant\Role;
 use App\Mail\LeaveAppliedMail;
 use Illuminate\Support\Facades\Mail;
+use App\Models\Tenant\Notification;
 trait UniversalCrud
 {
 
@@ -207,7 +208,8 @@ trait UniversalCrud
 
         return response()->json([
             'status' => 'success',
-            'message' => $id ? 'Updated successfully' : 'Created successfully'
+            'message' => $id ? 'Updated successfully' : 'Created successfully',
+            'redirect' => $request->redirect ?? null
         ]);
     }
 
@@ -344,171 +346,300 @@ public function saveTenant(Request $request)
         // SAVE EMPLOYEE ALL
 
 
-public function saveEmployeeAll($request, $employeeId = null)
-{
-    $validator = Validator::make($request->all(), [
-        'user_id'         => 'required|exists:tenant.users,id',
-        'employee_id'     => 'required|unique:tenant.employees,employee_id,' . $employeeId,
-        'first_name'      => 'required',
-        'last_name'       => 'required',
-        'phone'           => 'required',
-        'emergency_phone' => 'required',
-        'dob'             => 'required',
-        'gender'          => 'required',
-        'personal_email'  => 'required|email',
-        'corporate_email' => 'required|email',
-        'join_date'       => 'required',
-        'department_id'   => 'required',
-        'designation_id'  => 'required',
-        'profile'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-    ]);
+// public function saveEmployeeAll($request, $employeeId = null)
+// {
+//     $validator = Validator::make($request->all(), [
+//         'user_id'         => 'required|exists:tenant.users,id',
+//         'employee_id'     => 'required|unique:tenant.employees,employee_id,' . $employeeId,
+//         'first_name'      => 'required',
+//         'last_name'       => 'required',
+//         'phone'           => 'required',
+//         'emergency_phone' => 'required',
+//         'dob'             => 'required',
+//         'gender'          => 'required',
+//         'personal_email'  => 'required|email',
+//         'corporate_email' => 'required|email',
+//         'join_date'       => 'required',
+//         'department_id'   => 'required',
+//         'designation_id'  => 'required',
+//         'profile'         => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+//     ]);
 
 
-    if ($validator->fails()) {
+//     if ($validator->fails()) {
+//         return response()->json([
+//             'status' => 'error',
+//             'errors' => $validator->errors()
+//         ], 422);
+//     }
+
+//    try {
+//         DB::transaction(function () use ($request, $employeeId) {
+//             $data = $request->only([
+//                 'employee_id',
+//                 'first_name',
+//                 'last_name',
+//                 'phone',
+//                 'emergency_phone',
+//                 'dob',
+//                 'gender',
+//                 'personal_email',
+//                 'corporate_email',
+//                 'department_id',
+//                 'designation_id',
+//                 'report_to',
+//                 'join_date',
+//                 'user_id',
+//             ]);
+
+//             if ($request->hasFile('profile')) {
+//                 $model = new Employee();
+//                   $upload = $this->autoUpload($request, $model, $employeeId);
+//                 $data['profile'] = $upload['profile'];
+//             }
+
+
+//           $employee =  Employee::updateOrCreate(
+//                 ['id' => $employeeId],
+//                 $data);
+
+
+
+//             if (!$employee) {
+//                 throw new \Exception('Employee save failed');
+//             }
+
+//             EmployeeAddress::updateOrCreate(
+//                 ['employee_id' => $employee->id],
+//                 $request->only([
+//                     'present_address',
+//                     'present_landmark',
+//                     'present_zipcode',
+//                     'present_country',
+//                     'present_state',
+//                     'present_city',
+//                     'permanent_address',
+//                     'permanent_landmark',
+//                     'permanent_zipcode',
+//                     'permanent_country',
+//                     'permanent_state',
+//                     'permanent_city'
+//                 ])
+//             );
+
+//             EmployeePersonalInfo::updateOrCreate(
+//                 ['employee_id' => $employee->id],
+//                 $request->only([
+//                     'passport_no',
+//                     'passport_expiry',
+//                     'identity_no',
+//                     'nationality',
+//                     'religion',
+//                     'marital_status',
+//                     'spouse_name',
+//                     'children'
+//                 ])
+//             );
+
+//             EmployeeEmergencyContact::updateOrCreate(
+//                 ['employee_id' => $employee->id],
+//                 $request->only(['name','relation','phone','address'])
+//             );
+
+//             EmployeeFamilyInfo::updateOrCreate(
+//                 ['employee_id' => $employee->id],
+//                 $request->only(['name','relation','phone'])
+//             );
+
+//             EmployeeBankInfo::updateOrCreate(
+//                 ['employee_id' => $employee->id],
+//                 $request->only([
+//                     'account_name',
+//                     'bank_name',
+//                     'account_no',
+//                     'ifsc',
+//                     'pan_no',
+//                     'uan_no'
+//                 ])
+//             );
+
+//             EmployeeUpiInfo::updateOrCreate(
+//                 ['employee_id' => $employee->id],
+//                 $request->only(['upi_id','upi_app','is_primary'])
+//             );
+
+//             EmployeeEducation::updateOrCreate(
+//                 ['employee_id' => $employee->id],
+//                 $request->only([
+//                     'institute',
+//                     'degree',
+//                     'stream',
+//                     'from_date',
+//                     'to_date',
+
+//                 ])
+//             );
+
+//             EmployeeExperience::updateOrCreate(
+//                 ['employee_id' => $employee->id],
+//                 $request->only([
+//                     'company_name',
+//                     'designation',
+//                     'from_date',
+//                     'to_date',
+//                 ])
+//             );
+//         });
+
+//     } catch (\Throwable $e) {
+
+//         Log::error('Employee save failed', [
+//             'error' => $e->getMessage()
+//         ]);
+
+//         return response()->json([
+//             'status' => 'error',
+//             'message' =>  $e->getMessage()
+//         ], 500);
+//     }
+
+//     return response()->json([
+//         'status' => 'success',
+//         'message' => $employeeId ? 'Employee updated successfully!' : 'Employee created successfully!',
+//         'redirect' => route('tenant.employees.index')
+//     ]);
+// }
+
+   public function saveEmployeeAll(Request $request, $employeeId, $type = 'personal')
+    {
+        $user = Auth::user();
+        $isAdmin = $user->master == 1;
+
+
+        $rules = [
+            // 'first_name' => 'required',
+            // 'last_name'  => 'required',
+            // 'phone'      => 'required',
+            // 'dob'        => 'required',
+            // 'gender'     => 'required',
+            // 'personal_email' => 'required|email',
+            // 'profile'    => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ];
+
+        // Admin can
+        if ($isAdmin) {
+            // $rules['user_id'] = 'required|exists:tenant.users,id';
+            // $rules['employee_id'] = 'required|unique:tenant.employees,employee_id,' . $employeeId;
+            // $rules['department_id'] = 'required';
+            // $rules['designation_id'] = 'required';
+            // $rules['join_date'] = 'required';
+            // $rules['corporate_email'] = 'required|email';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            DB::transaction(function () use ($request, $employeeId, $isAdmin, $type) {
+
+                $data = $request->only([
+                    'first_name', 'last_name', 'phone', 'dob', 'gender', 'personal_email'
+                ]);
+
+                if ($isAdmin) {
+                    $data = array_merge($data, $request->only([
+                        'user_id', 'employee_id', 'department_id', 'designation_id', 'join_date', 'corporate_email', 'report_to'
+                    ]));
+                }
+
+                if ($request->hasFile('profile')) {
+                    $model = Employee::find($employeeId);
+                    $upload = $this->autoUpload($request, $model, $employeeId);
+                    $data['profile'] = $upload['profile'];
+                }
+
+                $employee = Employee::updateOrCreate(
+                    ['id' => $employeeId],
+                    $data
+                );
+
+
+                    EmployeeAddress::updateOrCreate(
+                        ['employee_id' => $employee->id],
+                        $request->only([
+                            'present_address','present_landmark','present_city','present_state','present_country','present_zipcode',
+                            'permanent_address','permanent_landmark','permanent_city','permanent_state','permanent_country','permanent_zipcode'
+                        ])
+                    );
+
+                    EmployeePersonalInfo::updateOrCreate(
+                        ['employee_id' => $employee->id],
+                        $request->only([
+                            'passport_no','passport_expiry','identity_no','nationality','religion','marital_status','spouse_name','children'
+                        ])
+                    );
+
+                    EmployeeEmergencyContact::updateOrCreate(
+                        ['employee_id' => $employee->id],
+                        $request->only(['name','relation','phone','address'])
+                    );
+
+                    EmployeeFamilyInfo::updateOrCreate(
+                        ['employee_id' => $employee->id],
+                        $request->only(['name','relation','phone'])
+                    );
+
+                    EmployeeBankInfo::updateOrCreate(
+                        ['employee_id' => $employee->id],
+                        $request->only(['account_name','bank_name','account_no','ifsc','pan_no','uan_no'])
+                    );
+
+                    EmployeeUpiInfo::updateOrCreate(
+                        ['employee_id' => $employee->id],
+                        $request->only(['upi_id','upi_app','is_primary'])
+                    );
+
+                    EmployeeEducation::updateOrCreate(
+                        ['employee_id' => $employee->id],
+                        $request->only(['institute','degree','stream','from_date','to_date'])
+                    );
+
+
+
+                    EmployeeExperience::updateOrCreate(
+                        ['employee_id' => $employee->id],
+                        $request->only(['company_name','designation','from_date','to_date'])
+                    );
+
+
+            });
+        } catch (\Throwable $e) {
+            Log::error('Employee save failed', ['error' => $e->getMessage()]);
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+
+         if ($isAdmin) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Profile updated successfully!',
+                'redirect' => tenantRoute('employees.index')
+             ]);
+         }
         return response()->json([
-            'status' => 'error',
-            'errors' => $validator->errors()
-        ], 422);
-    }
-
-   try {
-        DB::transaction(function () use ($request, $employeeId) {
-            $data = $request->only([
-                'employee_id',
-                'first_name',
-                'last_name',
-                'phone',
-                'emergency_phone',
-                'dob',
-                'gender',
-                'personal_email',
-                'corporate_email',
-                'department_id',
-                'designation_id',
-                'report_to',
-                'join_date',
-                'user_id',
-            ]);
-
-            if ($request->hasFile('profile')) {
-                $model = new Employee();
-                  $upload = $this->autoUpload($request, $model, $employeeId);
-                $data['profile'] = $upload['profile'];
-            }
-
-
-          $employee =  Employee::updateOrCreate(
-                ['id' => $employeeId],
-                $data);
-
-
-
-            if (!$employee) {
-                throw new \Exception('Employee save failed');
-            }
-
-            EmployeeAddress::updateOrCreate(
-                ['employee_id' => $employee->id],
-                $request->only([
-                    'present_address',
-                    'present_landmark',
-                    'present_zipcode',
-                    'present_country',
-                    'present_state',
-                    'present_city',
-                    'permanent_address',
-                    'permanent_landmark',
-                    'permanent_zipcode',
-                    'permanent_country',
-                    'permanent_state',
-                    'permanent_city'
-                ])
-            );
-
-            EmployeePersonalInfo::updateOrCreate(
-                ['employee_id' => $employee->id],
-                $request->only([
-                    'passport_no',
-                    'passport_expiry',
-                    'identity_no',
-                    'nationality',
-                    'religion',
-                    'marital_status',
-                    'spouse_name',
-                    'children'
-                ])
-            );
-
-            EmployeeEmergencyContact::updateOrCreate(
-                ['employee_id' => $employee->id],
-                $request->only(['name','relation','phone','address'])
-            );
-
-            EmployeeFamilyInfo::updateOrCreate(
-                ['employee_id' => $employee->id],
-                $request->only(['name','relation','phone'])
-            );
-
-            EmployeeBankInfo::updateOrCreate(
-                ['employee_id' => $employee->id],
-                $request->only([
-                    'account_name',
-                    'bank_name',
-                    'account_no',
-                    'ifsc',
-                    'pan_no',
-                    'uan_no'
-                ])
-            );
-
-            EmployeeUpiInfo::updateOrCreate(
-                ['employee_id' => $employee->id],
-                $request->only(['upi_id','upi_app','is_primary'])
-            );
-
-            EmployeeEducation::updateOrCreate(
-                ['employee_id' => $employee->id],
-                $request->only([
-                    'institute',
-                    'degree',
-                    'stream',
-                    'from_date',
-                    'to_date',
-
-                ])
-            );
-
-            EmployeeExperience::updateOrCreate(
-                ['employee_id' => $employee->id],
-                $request->only([
-                    'company_name',
-                    'designation',
-                    'from_date',
-                    'to_date',
-                ])
-            );
-        });
-
-    } catch (\Throwable $e) {
-
-        Log::error('Employee save failed', [
-            'error' => $e->getMessage()
+            'status' => true,
+            'message' => 'Profile updated successfully!',
         ]);
 
-        return response()->json([
-            'status' => 'error',
-            'message' =>  $e->getMessage()
-        ], 500);
     }
-
-    return response()->json([
-        'status' => 'success',
-        'message' => $employeeId ? 'Employee updated successfully!' : 'Employee created successfully!',
-        'redirect' => route('tenant.employees.index')
-    ]);
-}
-
-
 
 
 
@@ -633,6 +764,37 @@ public function deleteData($model, $id, $relations = [], $nullRelations = [])
     }
 
 
+ protected function notifyUser(int $userId, string $msg, string $title = 'Task Update'): void
+    {
+        Notification::create([
+            'user_id' => $userId,
+            'title'   => $title,
+            'message' => $msg,
+        ]);
+    }
+
+
+    protected function adminIds()
+    {
+            $adminRoleId = Role::where('name', 'Admin')->value('id');
+
+            return TenantUser::where('role_id', $adminRoleId)->pluck('id');
+    }
+
+    protected function notifyAdmin($task, string $msg): void
+    {
+        foreach ($this->adminIds() as $id) {
+            Notification::create([
+                'user_id' => $id,
+                'title'   => 'Task Alert',
+                'message' => $msg,
+                'meta'    => json_encode([
+                    'task_id'    => $task->id,
+                    'project_id' => $task->project_id
+                ])
+            ]);
+        }
+    }
 
 
 }

@@ -9,7 +9,7 @@
         </tr>
     </thead>
 
-    <tbody>
+    <tbody id="tableBody">
         @forelse($posts as $key => $t)
         <tr>
             <td>{{ $posts->firstItem() + $key }}</td>

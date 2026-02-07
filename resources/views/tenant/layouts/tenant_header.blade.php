@@ -1,4 +1,4 @@
-<div class="main-header">
+
     <div class="logo-header">
         <a href="{{ currentTenant() ? tenantRoute('dashboard','saas.dashboard.index') : route('saas.dashboard.index') }}"
            class="logo">
@@ -20,7 +20,7 @@
             <ul class="navbar-nav topbar-nav ml-md-auto align-items-center">
 
                 {{-- NOTIFICATION --}}
-                <li class="nav-item dropdown hidden-caret">
+                {{-- <li class="nav-item dropdown hidden-caret">
                     <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
                         <i class="la la-bell"></i>
                         <span class="notification">3</span>
@@ -30,7 +30,19 @@
                             <div class="dropdown-title">You have 3 new notifications</div>
                         </li>
                     </ul>
-                </li>
+                </li> --}}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link" href="#" data-toggle="dropdown" id="notifBell">
+                            <i class="la la-bell"></i>
+                            <span class="notification d-none" id="notifCount">0</span>
+                        </a>
+
+                        <ul class="dropdown-menu notif-box" id="notifList">
+                            <li class="dropdown-title">Notifications</li>
+                            <li class="text-center p-2">Loading...</li>
+                        </ul>
+                    </li>
+
 
                 {{-- PROFILE --}}
                 <li class="nav-item dropdown hidden-caret">
@@ -65,4 +77,3 @@
 
         </div>
     </nav>
-</div>

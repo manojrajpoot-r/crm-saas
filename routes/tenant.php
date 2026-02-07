@@ -27,8 +27,11 @@ use App\Http\Controllers\Tenant\Admin\team\TeamController;
 use App\Http\Controllers\Tenant\Admin\import\ImportController;
 use App\Http\Controllers\Tenant\Admin\leave\LeaveController;
 use App\Http\Controllers\Tenant\Admin\leaveType\LeaveTypeController;
-
-
+use App\Http\Controllers\Tenant\Admin\setting\SettingController;
+use App\Http\Controllers\Tenant\Admin\mytask\MyTaskController;
+use App\Http\Controllers\Tenant\Admin\notification\NotificationController;
+use App\Http\Controllers\Tenant\Employee\MyProfileController;
+use App\Http\Controllers\Tenant\Employee\report\MyReportController;
         // Route::get('/login', [TenantAuthController::class, 'showLoginForm'])->name('login');
 
       // Route::post('/login', [TenantAuthController::class, 'login'])->name('login.submit');
@@ -46,13 +49,15 @@ Route::name('tenant.')
 
         Route::post('/login', [TenantAuthController::class, 'login'])
             ->name('login.submit');
+
+
 });
 
 
 
 
 
-Route::middleware(['tenant', 'auth:tenant'])
+Route::middleware(['tenant', 'auth:tenant','tenant.mail'])
     ->name('tenant.')
     ->group(function () {
 
@@ -80,7 +85,9 @@ Route::middleware(['tenant', 'auth:tenant'])
         Route::moduleCRUD('Leaves', LeaveController::class, 'leaves');
         Route::moduleCRUD('LeaveTypes', LeaveTypeController::class, 'leaveTypes');
         Route::moduleCRUD('Holidays', HolidayController::class, 'holidays');
-          Route::moduleCRUD('Calendars', CalendarController::class, 'calendars');
+        Route::moduleCRUD('Calendars', CalendarController::class, 'calendars');
+        Route::moduleCRUD('Settings', SettingController::class, 'settings');
+        Route::moduleCRUD('Mytasks', MyTaskController::class, 'mytasks');
 
         Route::get('search-users', [TeamController::class, 'searchUsers'])->name('teams.searchUsers');
         Route::post('assign-team', [TeamController::class, 'assignTeam'])->name('teams.assign.emplyees');
@@ -97,7 +104,27 @@ Route::middleware(['tenant', 'auth:tenant'])
         Route::get('imports/status/{id}', [ImportController::class, 'status']);
         Route::post('imports/retry/{id}', [ImportController::class, 'retry']);
 
+         Route::get('notifications', [NotificationController::class, 'index'])
+        ->name('notifications.index');
 
+        Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount'])
+            ->name('notifications.unread.count');
 
+        Route::post('notifications/read/{id}', [NotificationController::class, 'markRead'])
+            ->name('notifications.read');
+
+        Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])
+            ->name('notifications.read.all');
+
+             Route::prefix('employee')->name('employee.')->group(function () {
+
+                Route::get('my-profile', [MyProfileController::class, 'index'])->name('my-profile');
+                Route::get('my-profile/form/{type}', [MyProfileController::class, 'loadForm'])->name('my-profile.form');
+                Route::post('my-profile/update', [MyProfileController::class, 'update'])->name('my-profile.update');
+                Route::post('my-profile/image-update', [MyProfileController::class, 'updateProfileImage'])->name('profile.update.image');
+                Route::get('my-change-password', [MyProfileController::class, 'change_password'])->name('change-password');
+                Route::post('my-change-password-update', [MyProfileController::class, 'change_password_update'])->name('change.password.update');
+                Route::moduleCRUD('MyReports', MyReportController::class, 'myreports');
+            });
 
 });

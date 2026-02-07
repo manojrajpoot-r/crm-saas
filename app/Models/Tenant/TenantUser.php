@@ -18,6 +18,7 @@ class TenantUser extends Authenticatable
         return $this->belongsTo(Role::class, 'role_id');
     }
 
+
     public function assignedAssets()
     {
         return $this->hasMany(AssignedAsset::class);

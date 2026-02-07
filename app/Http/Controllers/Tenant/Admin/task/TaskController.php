@@ -64,38 +64,47 @@ class TaskController extends Controller
 
 
 
+public function status(Request $request, $id)
+{
+    $task = Task::findOrFail($id);
 
-    public function status(Request $request, $id)
-    {
-        $task = Task::findOrFail($id);
+    switch ($request->type) {
 
-        switch ($request->type) {
+        case 'start':
+            $task->task_status = 1;
+            $task->started_at = now();
+            break;
 
-            case 'complete':
-                $task->status = 1; // completed
-                $task->is_completed = 1;
-                $task->completed_at = now();
-                break;
+        case 'complete': // employee ya admin
+            $task->task_status = 2;
+            $task->completed_at = now();
+            $this->notifyAdmin($task, 'Task completion requested');
+            break;
 
-            case 'create':
-                $task->status = 2; // created
-                break;
+        case 'approve':
+            $task->task_status = 3;
+            $task->status = 1;
+            $task->is_approved = 1;
+            $task->approved_at = now();
+            $task->approved_by = Auth::id();
 
-            case 'decline':
-                $task->status = 3; // declined
-                break;
+            $this->notifyUser($task->assigned_to, 'Task approved');
+            break;
 
-            case 'approve':
-                $task->is_approved = 1;
-                $task->approved_at = now();
-                $task->approved_by = Auth::id();
-                break;
-        }
+        case 'decline':
+            $task->task_status = 4;
+            $task->status = 3;
 
-        $task->save();
+            $this->notifyUser($task->assigned_to, 'Task declined');
+            break;
 
-        return response()->json(['success' => true]);
     }
+
+    $task->save();
+
+    return response()->json(['success' => true,'message'=>"status update successfully!!"]);
+}
+
 
 
 }

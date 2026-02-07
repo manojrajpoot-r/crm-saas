@@ -56,21 +56,28 @@ public function login(Request $request)
         'password' => 'required'
     ]);
 
-    if(Auth::guard('tenant')->attempt([
-        'email' => $request->email,
-        'password' => $request->password
-    ])){
+        $user =TenantUser::where('email', $request->email)->first();
 
-      return response()->json([
-            'message' => 'Login success',
-            'redirect' => route('tenant.dashboard', ['tenant' => currentTenant()])
-        ]);
+        if ($user && $user->status == 0) {
+            return response()->json([
+                'errors' => ['email' => ['Your account is disabled. Please contact admin']]
+            ], 422);
+        }
 
-    }
+        if (Auth::guard('tenant')->attempt([
+            'email'    => $request->email,
+            'password' => $request->password,
+            'status'   => 1
+        ])) {
+            return response()->json([
+                'message'  => 'Login successfully!!',
+                'redirect' => route('tenant.dashboard', ['tenant' => currentTenant()])
+            ]);
+        }
 
-    return response()->json([
-        'errors' => ['email' => ['Invalid tenant credentials']]
-    ], 422);
+        return response()->json([
+            'errors' => ['email' => ['Invalid tenant credentials']]
+        ], 422);
 }
 
 

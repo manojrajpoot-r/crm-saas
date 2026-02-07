@@ -15,9 +15,7 @@
 
 <div class="accordion-item mb-3">
     <h2 class="accordion-header">
-        <button class="accordion-button collapsed"
-                data-bs-toggle="collapse"
-                data-bs-target="#user-{{ $uid }}">
+        <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#user-{{ $uid }}">
             <strong>{{ ucwords($stats['name']) }}</strong>
             <span class="ms-2 text-muted">
                 ({{ $stats['total'] }} Leaves)
@@ -61,7 +59,7 @@
                 </div>
 
                 {{--  LEAVE TYPE CARDS (USER WISE) --}}
-                <div class="row g-2 mb-3">
+                {{-- <div class="row g-2 mb-3">
                     @foreach($leaveTypes as $type)
                         <div class="col-md-3">
                             <div class="card border-0 shadow-sm">
@@ -75,7 +73,33 @@
                             </div>
                         </div>
                     @endforeach
+                </div> --}}
+                <div class="row g-2 mb-3">
+                    @foreach($leaveBalances[$user->id] as $lb)
+                        <div class="col-md-3">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-body text-center">
+                                    <strong style="color:{{ $lb['color'] }}">
+                                        {{ $lb['name'] }}
+                                    </strong>
+
+                                    <div class="small text-muted">
+                                        Allowed: {{ $lb['allowed'] }}
+                                    </div>
+
+                                    <div class="small text-success">
+                                        Used: {{ $lb['used'] }}
+                                    </div>
+
+                                    <div class="small text-danger">
+                                        Remaining: {{ $lb['remaining'] }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
+
             </div>
 
             {{--  LEAVE TABLE --}}
@@ -112,7 +136,9 @@
 
 
                         <td>{{ $r->total_days }}</td>
-                        <td>{{ ucwords($r->session) }}</td>
+                        <td>
+                            {{ ucwords($r->session ?? 'full days') }}
+                        </td>
                         <td>{{ $r->subject }}</td>
 
                         <td>

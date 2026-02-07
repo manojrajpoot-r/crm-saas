@@ -14,11 +14,13 @@ use App\Mail\LeaveAppliedMail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use App\Services\LeaveService;
+
 class LeaveController extends Controller
 {
     use UniversalCrud;
-public function index(Request $request)
-{
+    public function index(Request $request)
+    {
         $user = Auth::user();
         $leaveTypes = LeaveType::select('id','name','color')->get();
         $userdropdwons = TenantUser::select('id','name')->get();
@@ -73,15 +75,22 @@ public function index(Request $request)
                 ];
             }
 
+            $leaveBalances = [];
+
+                foreach ($users as $userItem) {
+                    $leaveBalances[$userItem->id] = LeaveService::userLeaveBalance($userItem->id);
+                }
+
+
             if ($request->ajax()) {
-                return view('tenant.admin.leave.admin.table', compact('users','userStats','leaveTypes'))->render();
+                return view('tenant.admin.leave.admin.table', compact('users','userStats','leaveTypes','leaveBalances'))->render();
             }
 
-            return view('tenant.admin.leave.admin.index',compact('userStats','leaveTypes','users','userdropdwons'));
+            return view('tenant.admin.leave.admin.index',compact('userStats','leaveTypes','users','userdropdwons','leaveBalances'));
         }
 
         /* ================= USER ================= */
-       if (canAccess('view_self_leaves')) {
+       if (canAccess('view_leaves')) {
 
             $leaves = Leave::with(['leaveType','approvedByUser'])
                 ->where('user_id', $user->id)
@@ -99,19 +108,18 @@ public function index(Request $request)
                                     ->pluck('total','leave_type_id')
                                     ->toArray(),
                 ];
-
+        $leaveBalance = LeaveService::userLeaveBalance($user->id);
 
             if ($request->ajax()) {
-                return view('tenant.admin.leave.table', compact('leaves','selfStats','leaveTypes'))->render();
+                return view('tenant.admin.leave.table', compact('leaves','selfStats','leaveTypes','leaveBalance'))->render();
             }
-                return view('tenant.admin.leave.index',compact('leaves','leaveTypes','selfStats','userdropdwons'));
+                return view('tenant.admin.leave.index',compact('leaves','leaveTypes','selfStats','userdropdwons','leaveBalance'));
             }
     }
 
 
     public function store(Request $request)
     {
-
 
         try{
 
@@ -139,15 +147,15 @@ public function index(Request $request)
             ], 422);
         }
 
-        // $ccEmails = [];
-        // if ($request->cc_to) {
-        //     $ccEmails = TenantUser::whereIn('id', $request->cc_to)->pluck('email')->toArray();
-        // }
+        $ccEmails = [];
+        if ($request->cc_to) {
+            $ccEmails = TenantUser::whereIn('id', $request->cc_to)->pluck('email')->toArray();
+        }
 
 
-        // Mail::to($approver->email)
-        //     ->cc($ccEmails)
-        //     ->send(new LeaveAppliedMail($leave));
+        Mail::to($approver->email)
+            ->cc($ccEmails)
+            ->send(new LeaveAppliedMail($leave));
 
 
         }catch(\Throwable $e) {
@@ -168,14 +176,9 @@ public function index(Request $request)
 
     }
 
-
-
-
-
     public function edit($id)
     {
         $leave = Leave::with('leaveType')->findOrFail($id);
-
 
         return response()->json([
             "fields" => [
@@ -279,10 +282,6 @@ public function index(Request $request)
     public function show($id)
     {
         $leave = Leave::with(['user','leaveType','approvedByUser'])->findOrFail($id);
-
-        // if (canAccess('leave_view_self') && $leave->user_id !== Auth::id()) {
-        //     abort(403);
-        // }
         return view('tenant.admin.leave.view', compact('leave'));
     }
 

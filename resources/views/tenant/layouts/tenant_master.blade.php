@@ -42,7 +42,7 @@
 
 
     <style>
-        .la {
+        /* .la {
             font-family: "Line Awesome Free" !important;
             font-weight: 900;
         }
@@ -51,7 +51,7 @@
             width: 26px;
             text-align: center;
             display: inline-block;
-        }
+        } */
 
 
         .form-check-inline .form-check-input {

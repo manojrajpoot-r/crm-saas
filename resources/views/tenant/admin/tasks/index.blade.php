@@ -36,7 +36,7 @@
 
 
             let fields = {
-                project_id: "hidden",
+                project_id: { type: "hidden", value: "{{ $project->id }}" },
                 module_id: 'select:' + moduleOptions,
                 name: 'text',
                 description: 'textarea',
@@ -51,9 +51,6 @@
             $("#universalForm").attr("action", storeUrl);
 
             loadForm(fields, "Add Task");
-
-            //  auto set project id
-            $('input[name="project_id"]').val(PROJECT_ID);
 
                  $('#globalModal').off('shown.bs.modal').on('shown.bs.modal', function () {
                     initModalPlugins();

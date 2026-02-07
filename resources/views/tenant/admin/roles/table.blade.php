@@ -16,7 +16,7 @@
                 <td>{{ $t->name }}</td>
 
                 <td>
-                    @if(canAccess('roles_status'))
+                    @if(canAccess('status_roles'))
                         <button
                             class="btn btn-sm {{ $t->status ? 'btn-success':'btn-danger' }} statusBtn"
                             data-url="{{ tenantRoute(

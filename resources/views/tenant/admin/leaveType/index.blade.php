@@ -5,7 +5,7 @@
     <div class="content">
 
    @include('tenant.includes.universal-modal')
-       {{-- ADD BUTTON --}}
+
         @if(canAccess('create_leave_types'))
             <button id="addBtn" class="btn btn-primary mb-3">
                 Add Leave Type

@@ -29,7 +29,7 @@
     </div>
 </div>
 
-<div class="row g-3 mb-4">
+{{-- <div class="row g-3 mb-4">
 @foreach($leaveTypes as $type)
     <div class="col-md-3">
         <div class="card border-0 shadow-sm">
@@ -43,8 +43,21 @@
         </div>
     </div>
 @endforeach
-</div>
+</div> --}}
 
+<div class="row mb-3">
+@foreach($leaveBalance as $lb)
+    <div class="col-md-3">
+        <div class="card shadow-sm text-center">
+            <strong style="color:{{ $lb['color'] }}">
+                {{ $lb['name'] }}
+            </strong>
+            <small>Remaining</small>
+            <h5>{{ $lb['remaining'] }}</h5>
+        </div>
+    </div>
+@endforeach
+</div>
 
 
 <table class="table table-bordered">
