@@ -1,7 +1,5 @@
-# Use PHP 8.2 FPM base image
-FROM php:8.2-fpm
+FROM php:8.1-apache
 
-# Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
     libzip-dev \
     libicu-dev \
@@ -9,7 +7,6 @@ RUN apt-get update && apt-get install -y \
     libjpeg-dev \
     libfreetype6-dev \
     libonig-dev \
-    libxml2-dev \
     unzip \
     git \
     curl \
@@ -22,22 +19,21 @@ RUN apt-get update && apt-get install -y \
         gd \
         mbstring \
         exif \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    && a2enmod rewrite
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Set working directory
 WORKDIR /var/www/html
-
-# Copy application files
 COPY . .
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN composer install --no-dev --optimize-autoloader
 
-# Expose port 9000 for PHP-FPM
-EXPOSE 9000
+RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Start PHP-FPM
-CMD ["php-fpm"]
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+
+RUN php artisan key:generate || true
+RUN php artisan config:clear || true
+RUN php artisan route:clear || true
+RUN php artisan view:clear || true
+
+EXPOSE 80
