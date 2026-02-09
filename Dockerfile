@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install \
         pdo \
         pdo_mysql \
+        pdo_pgsql \
         zip \
         intl \
         gd \
@@ -25,15 +26,9 @@ WORKDIR /var/www/html
 COPY . .
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-RUN composer install --no-dev --optimize-autoloader
-
-RUN chown -R www-data:www-data storage bootstrap/cache
 
 RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
-RUN php artisan key:generate || true
-RUN php artisan config:clear || true
-RUN php artisan route:clear || true
-RUN php artisan view:clear || true
+RUN chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 80
