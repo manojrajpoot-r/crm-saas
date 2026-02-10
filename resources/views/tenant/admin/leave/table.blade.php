@@ -29,21 +29,7 @@
     </div>
 </div>
 
-{{-- <div class="row g-3 mb-4">
-@foreach($leaveTypes as $type)
-    <div class="col-md-3">
-        <div class="card border-0 shadow-sm">
-            <div class="card-body d-flex justify-content-between align-items-center">
-                <span>{{ $type->name }}</span>
-                <span class="badge"
-                      style="background:{{ $type->color }}">
-                    {{ $selfStats['types'][$type->id] ?? 0 }}
-                </span>
-            </div>
-        </div>
-    </div>
-@endforeach
-</div> --}}
+
 
 <div class="row mb-3">
 @foreach($leaveBalance as $lb)

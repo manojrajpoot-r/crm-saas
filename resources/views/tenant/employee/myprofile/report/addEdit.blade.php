@@ -6,13 +6,17 @@
     <div class="content">
 
 
-        <form id="universalForm" method="POST" action="{{ $item ? tenantRoute('employee.myreports.update', null, ['id' => $item->id]) : tenantRoute('employee.myreports.store') }}"
+        <form id="universalForm" method="POST" action="{{ $item
+            ? tenantRoute('employee.myreports.update', null, ['id' => base64_encode($item->id)])
+            : tenantRoute('employee.myreports.store') }}"
+
             enctype="multipart/form-data">
 
             @csrf
             <input type="hidden" name="redirect" value="{{ tenantRoute('employee.myreports.index') }}">
             <input type="hidden" name="id" value="{{ $item->id ?? '' }}">
-            <input type="hidden" name="report_date" value="{{ now() }}">
+            <input type="hidden" name="report_date" value="{{ now()->toDateTimeString() }}">
+
 
 
             {{-- REPORT TYPE --}}
@@ -26,8 +30,7 @@
                                 <input class="form-check-input reportType"
                                     type="radio"
                                     name="report_type"
-                                    value="project"
-                                    {{ !$item || $item->projects->count() ? 'checked' : '' }}>
+                                    value="project">
                                 <label class="form-check-label">With Project</label>
                             </div>
 
@@ -35,8 +38,7 @@
                                 <input class="form-check-input reportType"
                                     type="radio"
                                     name="report_type"
-                                    value="other"
-                                    {{ $item && !$item->projects->count() ? 'checked' : '' }}>
+                                    value="other">
                                 <label class="form-check-label">Other</label>
                             </div>
 
@@ -52,19 +54,23 @@
 
 
                             {{-- MULTIPLE PROJECTS --}}
-                        <div id="projectWrapper">
-                            @php $i = 0; @endphp
+                            <div id="projectWrapper">
+                                @php $i = 0; @endphp
 
-                            @if(isset($item) && $item->projects->count())
-                                @foreach($item->projects as $p)
-                                    @include('tenant.employee.myprofile.report.project-row', ['i' => $i, 'p' => $p])
-                                    @php $i++; @endphp
-                                @endforeach
-                            @else
-                                @include('tenant.employee.myprofile.report.project-row', ['i' => 0])
-                                @php $i = 1; @endphp
-                            @endif
-                        </div>
+                                @if($item && $item->projects && $item->projects->count())
+                                    @foreach($item->projects as $p)
+                                     @include('tenant.employee.myprofile.report.project-row', [
+                                        'i' => $i,
+                                        'p' => $p
+                                    ])
+
+                                        @php $i++; @endphp
+                                    @endforeach
+                                @else
+                                    @include('tenant.employee.myprofile.report.project-row', ['i' => 0])
+                                @endif
+                            </div>
+
 
 
 
@@ -83,14 +89,34 @@
                             </button>
                         </div>
 
+         <div class="mt-5 d-flex gap-3">
+
+    {{-- SAVE AS DRAFT --}}
+    <button type="submit"
+            name="action"
+            value="draft"
+            class="btn btn-secondary px-5">
+        Save as Draft
+    </button>
+
+    {{-- FINAL SUBMIT --}}
+    <button type="submit"
+            name="action"
+            value="submit"
+            class="btn btn-primary px-5">
+        Final Submit
+    </button>
+
+</div>
 
 
+{{--
                         <div class="mt-5">
                                 <button type="submit" id="formSubmitBtn" class="btn btn-primary px-5">
                                 <span class="btn-text">  {{ isset($item->id) ? 'Update' : 'Create' }}</span>
                                 <span class="spinner-border spinner-border-sm d-none" role="status"></span>
                                 </button>
-                        </div>
+                        </div> --}}
                     </div>
              </div>
         </form>
@@ -98,6 +124,10 @@
     </div>
 </div>
 @endsection
+@php
+    $projectCount = ($item && $item->projects) ? $item->projects->count() : 1;
+
+@endphp
 
 @push('scripts')
   @include('tenant.includes.universal-scripts')
@@ -136,8 +166,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
+let index = {{ $projectCount }};
 
-let index = {{ $i ?? 1 }};
 
 document.getElementById('addProject').addEventListener('click', () => {
 
@@ -160,7 +190,7 @@ document.getElementById('addProject').addEventListener('click', () => {
                 <label class="fw-semibold">Work Description</label>
                 <textarea name="projects[${index}][description]"
                           class="form-control summernote"
-                          rows="3"></textarea>
+                          rows="8"></textarea>
             </div>
 
             <div class="col-md-2">

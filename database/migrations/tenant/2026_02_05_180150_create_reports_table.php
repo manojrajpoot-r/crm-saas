@@ -14,8 +14,6 @@ return new class extends Migration
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
               $table->foreignId('user_id');
-                $table->foreignId('project_id')->nullable();
-                $table->text('description')->nullable();
                 $table->date('report_date');
                 $table->enum('status', [
                     'draft',
@@ -24,8 +22,6 @@ return new class extends Migration
                     'rejected'
                 ])->default('draft');
 
-
-                $table->text('admin_comment')->nullable();
                         $table->timestamps();
         });
     }

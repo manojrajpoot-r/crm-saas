@@ -685,6 +685,12 @@ function clearFieldError(input) {
             btn.find(".spinner-border").toggleClass("d-none", !loading);
         }
 
+      let clickedAction = null;
+
+        $(document).on("click", "#universalForm button[type=submit]", function () {
+            clickedAction = $(this).val();
+        });
+
         $(document).on("submit", "#universalForm", function (e) {
             e.preventDefault();
 
@@ -693,7 +699,11 @@ function clearFieldError(input) {
             let btn  = $("#formSubmitBtn");
             let formData = new FormData(form);
 
-            // spinner ON
+            //  manually add action
+            if (clickedAction) {
+                formData.append('action', clickedAction);
+            }
+
             toggleBtn(btn, true);
 
             $.ajax({
@@ -705,25 +715,14 @@ function clearFieldError(input) {
 
                 success: function (res) {
                     toastr.success(res.message);
-
-                     $('#tableBody').load(window.location.href + ' #tableBody > *');
-                    // spinner OFF
                     toggleBtn(btn, false);
 
                     if (res.redirect) {
                         window.location.href = res.redirect;
-                        return;
-                    }
-
-                    $("#globalModal").modal("hide");
-                    if (typeof table !== "undefined") {
-                          $('#tableBody').load(window.location.href + ' #tableBody > *');
                     }
                 },
 
                 error: function (err) {
-
-                    // spinner OFF
                     toggleBtn(btn, false);
 
                     if (err.status === 422) {
@@ -732,6 +731,7 @@ function clearFieldError(input) {
                 }
             });
         });
+
 
         // =======================
         // Clear validation on input change
@@ -1046,7 +1046,7 @@ function clearFieldError(input) {
             //Summernote in form
             function initSummernote(context = document) {
                 $(context).find('.summernote').summernote({
-                    height: 120,
+                    height: 300,
                     placeholder: 'Describe your work in detail...',
                     toolbar: [
                         ['style', ['bold', 'italic', 'underline']],

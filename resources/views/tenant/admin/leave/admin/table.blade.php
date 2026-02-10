@@ -58,22 +58,7 @@
                     </div>
                 </div>
 
-                {{--  LEAVE TYPE CARDS (USER WISE) --}}
-                {{-- <div class="row g-2 mb-3">
-                    @foreach($leaveTypes as $type)
-                        <div class="col-md-3">
-                            <div class="card border-0 shadow-sm">
-                                <div class="card-body d-flex justify-content-between align-items-center">
-                                    <span>{{ $type->name }}</span>
-                                    <span class="badge"
-                                          style="background:{{ $type->color }}">
-                                        {{ $stats['types'][$type->id] ?? 0 }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div> --}}
+
                 <div class="row g-2 mb-3">
                     @foreach($leaveBalances[$user->id] as $lb)
                         <div class="col-md-3">

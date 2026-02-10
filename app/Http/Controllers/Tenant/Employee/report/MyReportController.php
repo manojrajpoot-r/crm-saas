@@ -17,18 +17,22 @@ class MyReportController extends Controller
 
 public function index()
 {
-    if (canAccess('view_all_reports')) {
-        $reports = Report::with('user','project')
-            ->latest()
-            ->paginate(10);
+    $query = Report::latest();
+
+    if (Auth::user()->master == 1) {
+        $query->with([
+            'user',
+            'projects.project'
+        ]);
     } else {
-        $reports = Report::where('user_id', Auth::id())
-            ->latest()
-            ->paginate(10);
+        $query->where('user_id', Auth::id());
     }
+
+    $reports = $query->paginate(10);
 
     return view('tenant.employee.myprofile.report.index', compact('reports'));
 }
+
 
 
     public function create()
@@ -38,68 +42,123 @@ public function index()
         return view('tenant.employee.myprofile.report.addEdit', compact('projects','item'));
     }
 
-
-        public function edit($id)
-        {
-            $item = Report::with('projects')->findOrFail($id);
-            $projects = Project::pluck('name','id');
-
-        return view('tenant.employee.myprofile.report.addEdit', compact('projects','item'));
-    }
-
-
-public function store(Request $request, $id = null)
+public function edit($id)
 {
-        $validator = Validator::make($request->all(), [
-            'projects' => 'required|array',
-            'projects.*.description' => 'required|string',
+    $id = base64_decode($id);
+
+    $item = Report::with([
+        'user',
+        'projects.project'
+    ])->findOrFail($id);
+
+    $projects = Project::pluck('name', 'id');
+
+    return view(
+        'tenant.employee.myprofile.report.addEdit',
+        compact('projects', 'item')
+    );
+}
+
+
+private function validateRequest(Request $request)
+{
+    Validator::make($request->all(), [
+        'report_date' => 'required|date',
+        'projects' => 'required|array|min:1',
+        'projects.*.project_id' => 'required|exists:projects,id',
+        'projects.*.description' => 'required|string',
+        'projects.*.hours' => 'nullable|numeric|min:0',
+    ])->validate();
+}
+
+public function store(Request $request)
+{
+    DB::transaction(function () use ($request) {
+
+        $status = $request->action === 'submit' ? 'submitted' : 'draft';
+
+        $report = Report::create([
+            'user_id'     => Auth::id(),
+            'report_date' => $request->report_date,
+            'status'      => $status,
+            'report_type' => $request->report_type,
         ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-
-    DB::transaction(function () use ($request, $id) {
-
-
-        if ($id) {
-            Report::where('id', $id)
-                ->where('user_id', Auth::id())
-                ->delete();
-        }
 
         foreach ($request->projects as $row) {
 
-            Report::create([
-                'user_id'     => Auth::id(),
-                'project_id'  => $row['project_id'] ?? null,
-                'title'       => $row['title'] ?? null,
-                'description' => $row['description'],
-                'hours'       => $row['hours'] ?? 0,
-                'report_date' => $request->report_date,
+            $report->projects()->create([
+                'project_id'    => $request->report_type === 'other'
+                                    ? null
+                                    : $row['project_id'],
+                'description'   => $row['description'],
+                'hours'         => $row['hours'] ?? 0,
+                'admin_comment' => null,
+            ]);
+        }
+
+        if ($request->hasFile('documents')) {
+            $this->uploadMultipleDocs(
+                $request,
+                $report,
+                'documents',
+                class_basename(Report::class)
+            );
+        }
+    });
+
+    return response()->json([
+        'status'   => true,
+        'message'  => $request->action === 'submit'
+                        ? 'Report submitted successfully'
+                        : 'Draft saved successfully',
+        'redirect' => route('tenant.employee.myreports.index')
+    ]);
+}
+
+
+public function update(Request $request, $id)
+{
+    $id = base64_decode($id);
+
+    DB::transaction(function () use ($request, $id) {
+
+        $status = $request->action === 'submit' ? 'submitted' : 'draft';
+
+        $report = Report::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $report->update([
+            'report_date' => $request->report_date,
+            'status'      => $status,
+            'report_type' => $request->report_type,
+        ]);
+
+        $report->projects()->delete();
+
+        foreach ($request->projects as $row) {
+
+            $report->projects()->create([
+                'project_id'    => $request->report_type === 'other'
+                                    ? null
+                                    : $row['project_id'],
+                'description'   => $row['description'],
+                'hours'         => $row['hours'] ?? 0,
                 'admin_comment' => null,
             ]);
         }
     });
 
     return response()->json([
-        'status' => true,
-        'message' => $id ? 'Report updated successfully' : 'Report created successfully',
+        'status'   => true,
+        'message'  => $request->action === 'submit'
+                        ? 'Report submitted successfully'
+                        : 'Draft updated successfully',
         'redirect' => route('tenant.employee.myreports.index')
     ]);
 }
 
 
-    public function update(Request $request, $id)
-    {
-
-         return $this->saveData($request, Report::class, $id);
-
-    }
 
 
     public function delete($id)
@@ -108,27 +167,30 @@ public function store(Request $request, $id = null)
     }
 
 
-    public function status($id)
+    public function status(Request $request, $id)
     {
-        return $this->toggleStatus(Report::class, $id);
+        $report = Report::findOrFail($id);
+          $report->update([
+            'status' => $request->status,
+            'admin_comment' => $request->remark,
+            'approved_by' => Auth::id(),
+            'approved_at' => now()
+        ]);
+
     }
 
-    public function show($id)
-    {
-        $id = base64_decode($id);
+public function show($id)
+{
+    $id = base64_decode($id);
 
-        $report = Report::with([
-            'user',
-            'project',
-            'documents'
-        ])->findOrFail($id);
+    $report = Report::with([
+        'user',
+        'projects.project',
+        'documents'
+    ])->findOrFail($id);
 
-        // Authorization (optional but recommended)
-        if (!canAccess('view_all_reports') && $report->user_id !== Auth::id()) {
-            abort(403);
-        }
+    return view('tenant.employee.myprofile.report.show', compact('report'));
+}
 
-        return view('tenant.employee.myprofile.report.show', compact('report'));
-    }
 
 }
