@@ -7,11 +7,19 @@
                     <div class="card-body">
                         <div class="row g-3">
 
-                            <div class="col-md-6">
+                        <div class="col-md-6">
                                 <label class="form-label">Profile *</label>
-                                <input type="file" class="form-control" name="profile"
-                                    value="{{ old('profile', $employee->profile ?? '') }}">
+                            <input type="file" class="form-control file-input" name="profile">
+
+                            <div class="preview-box mt-2">
+                                @if(!empty($employee?->profile))
+                                    <img src="{{ asset('uploads/employees/profile/'.$employee->profile) }}"
+                                        class="preview-img"
+                                        style="height:60px;">
+                                @endif
                             </div>
+                        </div>
+
                             <div class="col-md-6">
                                 <label class="form-label">First Name *</label>
                                 <input type="text" class="form-control" name="first_name"

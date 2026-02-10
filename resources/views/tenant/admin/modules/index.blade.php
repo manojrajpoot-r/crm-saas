@@ -19,7 +19,7 @@
                 'url' => tenantRoute('modules.index', null,['id'=>base64_encode($project->id)]),
                 'wrapperId' => 'moduleTable',
                 'content' => view('tenant.admin.modules.table', [
-                    'modules' => $modules
+                'modules' => $modules
                 ])
             ])
 
@@ -38,7 +38,7 @@
              $("#universalForm")[0].reset();
                 $("#modalBody").empty();
             let fields = {
-                project_id: "hidden",
+                 project_id: { type: "hidden", value: "{{ $project->id }}" },
                 title: "text",
                 notes:"textarea",
                 start_date:"date",
@@ -48,7 +48,7 @@
           $("#universalForm").attr("action", modulestore);
 
             loadForm(fields, "Add Module");
-             $('input[name="project_id"]').val(PROJECT_ID);
+
                 $('#globalModal').off('shown.bs.modal').on('shown.bs.modal', function () {
                     initModalPlugins();
             });

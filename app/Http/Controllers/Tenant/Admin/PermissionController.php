@@ -13,7 +13,7 @@ class PermissionController extends Controller
 
     public function index(Request $request)
     {
-        $permissions = Permission::latest()->paginate(10);
+        $permissions = Permission::orderBy('id','desc')->paginate(10);
 
         if ($request->ajax()) {
             return view('tenant.admin.permissions.table', compact('permissions'))->render();

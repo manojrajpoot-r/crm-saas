@@ -58,17 +58,39 @@
                @endif
             @endforeach
 
-        </ul>
+                 <li class="nav-item sidebar-profile">
+                    <a href="{{ tenantRoute('employee.my-profile') }}" class="d-flex align-items-center">
+                        <div class="profile-img-wrapper">
+                            <img src="{{ auth()->user()->employee->profile
+                                ? asset('uploads/employees/profile/'.auth()->user()->employee->profile)
+                                : asset('assets/img/default-user.png') }}"
+                                class="profile-img">
 
-        <form method="POST"
-              action="{{ currentGuard() === 'saas'
-                        ? route('saas.logout')
-                        : route('tenant.logout', ['tenant' => currentTenant()]) }}">
-            @csrf
-            <button type="submit" style="margin-left:22px"
-                    class="btn btn-danger">
-                Logout
-            </button>
-        </form>
+                            <span class="status-dot online"></span>
+                        </div>
+
+                        <span class="ms-2">My Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ tenantRoute('employee.change-password') }}" class="nav-link d-flex align-items-center gap-2">
+                        <i class="la la-lock text-warning"></i>
+                        <span>Change Password</span>
+                    </a>
+                </li>
+
+            <li class="nav-item">
+            <form method="POST"
+                action="{{ currentGuard() === 'saas'
+                            ? route('saas.logout')
+                            : route('tenant.logout', ['tenant' => currentTenant()]) }}">
+                @csrf
+                <button type="submit" style="margin-left:22px"
+                        class="btn btn-danger">
+                    Logout
+                </button>
+            </form>
+            </li>
+        </ul>
     </div>
 </div>

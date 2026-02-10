@@ -13,7 +13,7 @@
                         <th>Action</th>
                     </tr>
                 </thead>
-  <tbody id="tableBody">
+        <tbody id="tableBody">
             @foreach($users as $key => $t)
             <tr>
                 <td>{{ $users->firstItem() + $key }}</td>
@@ -31,7 +31,7 @@
                     @if(canAccess('users_status'))
                         <button class="btn btn-sm {{ $t->status ? 'btn-success':'btn-danger' }} statusBtn"
                             data-url="{{ currentGuard() === 'saas' ? route('saas.users.status', $t->id) : tenantRoute('users.status', null, [$t->id]) }}">
-                            {{ $t->status ? 'Active':'Inactive' }}
+                            {{ $t->status ? 'Active':'(resigned / blocked)' }}
                         </button>
                     @else
                         <span class="badge bg-secondary">No Access</span>

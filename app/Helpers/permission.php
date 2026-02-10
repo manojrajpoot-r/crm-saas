@@ -24,7 +24,7 @@ if (!function_exists('canAccess')) {
 
 
         return $user->role->permissions
-            ->pluck('name') // 'view_users','create_users','edit_users','delete_users',
+            ->pluck('name')
             ->map(fn ($p) => strtolower(trim($p)))
             ->contains(strtolower(trim($permission)));
     }

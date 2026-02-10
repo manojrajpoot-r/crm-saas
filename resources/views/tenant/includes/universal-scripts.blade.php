@@ -54,6 +54,8 @@
         'tenant' => tenantRoute('users.index'),
         default  => '',
     };
+
+
 @endphp
 
 
@@ -380,7 +382,7 @@
             $.get(editUrl, function (res) {
                 let updateUrl = editUrl.replace('/edit/', '/update/');
                 $("#universalForm").attr("action", updateUrl);
-                loadForm(res.fields, "Edit Project");
+                loadForm(res.fields, "Edit");
 
                 // documents fields
              if (res.fields.documents !== undefined) {
@@ -389,7 +391,6 @@
 
 
                 $("#globalModal").modal('show');
-
                 $('#globalModal').off('shown.bs.modal').on('shown.bs.modal', function () {
                     initModalPlugins();
 
@@ -421,6 +422,66 @@
 
 
 
+    // =======================
+    // UNIVERSAL Preview Images
+    // =======================
+
+        $(document).on('click', '.file-dropzone', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            $(this).find('input[type=file]').trigger('click');
+        });
+        $(document).on('click', '.file-input', function (e) {
+            e.stopPropagation();
+        });
+
+
+        $(document).on('dragover', '.file-dropzone', function (e) {
+            e.preventDefault();
+            $(this).addClass('dragover');
+        });
+
+        $(document).on('dragleave', '.file-dropzone', function () {
+            $(this).removeClass('dragover');
+        });
+
+        $(document).on('drop', '.file-dropzone', function (e) {
+            e.preventDefault();
+            $(this).removeClass('dragover');
+
+            let input = $(this).find('input[type=file]')[0];
+            input.files = e.originalEvent.dataTransfer.files;
+            $(input).trigger('change');
+        });
+
+        $(document).on('change', '.file-input', function () {
+
+            let previewBox = $(this).closest('.dropzone-wrapper').find('.preview-box');
+            previewBox.find('.new-preview').remove();
+
+            Array.from(this.files).forEach(file => {
+
+                if (!file.type.startsWith('image/')) return;
+
+                let reader = new FileReader();
+
+                reader.onload = function (e) {
+                    $('<img>', {
+                        src: e.target.result,
+                        class: 'preview-img new-preview'
+                    }).appendTo(previewBox);
+                };
+
+                reader.readAsDataURL(file);
+            });
+        });
+
+
+
+        $(document).on('click', '.preview-img', function () {
+            $(this).remove();
+        });
 
 
 
@@ -463,7 +524,7 @@
             let status = $('#globalStatusSelect').val();
             $.post(STATUS_UPDATE_URL, { status: status }, function () {
                 $('#globalStatusModal').modal('hide');
-                $('#tableBody').load(window.location.href + ' #tableBody > *');
+               $('#tableBody').load(window.location.href + ' #tableBody > *');
                 toastr.success('Status updated');
 
             }).fail(function (xhr) {
@@ -582,26 +643,38 @@
         // =======================
         // Validation
         // =======================
-        function showValidationErrors(errors, form) {
-            form.find(".is-invalid").removeClass("is-invalid");
-            form.find(".dynamic-error").remove();
+  function showValidationErrors(errors, form) {
+    form.find(".is-invalid").removeClass("is-invalid");
+    form.find(".dynamic-error").remove();
 
-            $.each(errors, function (field, messages) {
-                let input = form.find('[name="' + field + '"]');
+    $.each(errors, function (field, messages) {
 
-                if (input.length) {
-                    input.addClass("is-invalid");
+        let name = field
+            .replace(/\.(\d+)\./g, '[$1][') // projects.0.description → projects[0][description
+            .replace(/\./g, ']');           // last ] add
 
-                    let errorHtml = `<small class="text-danger dynamic-error">${messages[0]}</small>`;
-                    input.after(errorHtml);
-                }
-            });
+        name = name + ']';
+
+        let input = form.find('[name="' + name + '"]');
+
+        if (input.length) {
+            input.addClass("is-invalid");
+
+            let errorHtml = `<small class="text-danger dynamic-error">${messages[0]}</small>`;
+            input.after(errorHtml);
         }
+    });
+}
 
-        function clearFieldError(input) {
-            input.removeClass("is-invalid");
-            input.next(".dynamic-error").remove();
-        }
+$(document).on('input change', 'input, textarea, select', function () {
+    clearFieldError($(this));
+});
+
+function clearFieldError(input) {
+    input.removeClass("is-invalid");
+    input.next(".dynamic-error").remove();
+}
+
 
         // =======================
         // UNIVERSAL SAVE
@@ -612,6 +685,12 @@
             btn.find(".spinner-border").toggleClass("d-none", !loading);
         }
 
+      let clickedAction = null;
+
+        $(document).on("click", "#universalForm button[type=submit]", function () {
+            clickedAction = $(this).val();
+        });
+
         $(document).on("submit", "#universalForm", function (e) {
             e.preventDefault();
 
@@ -620,7 +699,11 @@
             let btn  = $("#formSubmitBtn");
             let formData = new FormData(form);
 
-            // spinner ON
+            //  manually add action
+            if (clickedAction) {
+                formData.append('action', clickedAction);
+            }
+
             toggleBtn(btn, true);
 
             $.ajax({
@@ -632,25 +715,14 @@
 
                 success: function (res) {
                     toastr.success(res.message);
-
-                     $('#tableBody').load(window.location.href + ' #tableBody > *');
-                    // spinner OFF
                     toggleBtn(btn, false);
 
                     if (res.redirect) {
                         window.location.href = res.redirect;
-                        return;
-                    }
-
-                    $("#globalModal").modal("hide");
-                    if (typeof table !== "undefined") {
-                          $('#tableBody').load(window.location.href + ' #tableBody > *');
                     }
                 },
 
                 error: function (err) {
-
-                    // spinner OFF
                     toggleBtn(btn, false);
 
                     if (err.status === 422) {
@@ -659,6 +731,7 @@
                 }
             });
         });
+
 
         // =======================
         // Clear validation on input change
@@ -699,6 +772,14 @@
 
                         toastr.success("status update!");
                          $('#tableBody').load(window.location.href + ' #tableBody > *');
+                    })
+                    .fail(function (xhr) {
+
+                        if (xhr.status === 422) {
+                            toastr.error(xhr.responseJSON.error);
+                        } else {
+                            toastr.error("Something went wrong!");
+                        }
                     });
 
                 }
@@ -741,9 +822,66 @@
 
                     toastr.success("Status updated!");
                     $('#tableBody').load(window.location.href + ' #tableBody > *');
+                })
+                 .fail(function (xhr) {
+
+                    if (xhr.status === 422) {
+                        toastr.error(xhr.responseJSON.error);
+                    } else {
+                        toastr.error("Something went wrong!");
+                    }
                 });
             });
         });
+
+
+
+        // =======================
+        // STATUS BUTTON admin task approved rejeject
+        // =======================
+
+        $(document).on('click','.actionBtnTask',function(){
+
+            let url = $(this).data('url');
+            let type = $(this).data('type');
+
+            Swal.fire({
+                title: 'Are you sure?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes'
+            }).then((res)=>{
+
+                if(res.isConfirmed){
+
+                    $.post(url,{
+                        _token: $('meta[name="csrf-token"]').attr('content'),
+                        type:type
+                    },function(){
+
+                        Swal.fire({
+                            icon:'success',
+                            title:'Updated',
+                            timer:1200,
+                            showConfirmButton:false
+                        });
+
+                        $('#tableBody').load(location.href+' #tableBody > *');
+                    })
+                     .fail(function (xhr) {
+                            if (xhr.status === 422) {
+                                toastr.error(xhr.responseJSON.error);
+                            } else {
+                                toastr.error("Something went wrong!");
+                            }
+                        });
+                }
+            });
+        });
+
+
+
+
 
 
         // =======================
@@ -904,6 +1042,25 @@
                 $(this).addClass('summernote-initialized');
             });
         }
+
+            //Summernote in form
+            function initSummernote(context = document) {
+                $(context).find('.summernote').summernote({
+                    height: 300,
+                    placeholder: 'Describe your work in detail...',
+                    toolbar: [
+                        ['style', ['bold', 'italic', 'underline']],
+                        ['para', ['ul', 'ol']],
+                        ['insert', ['link']],
+                        ['view', ['codeview']]
+                    ]
+                });
+            }
+
+            // Init on page load
+            document.addEventListener('DOMContentLoaded', function () {
+                initSummernote();
+            });
 
 
 
@@ -1182,7 +1339,7 @@
 
 
         // =======================
-        // leave filetr
+        // leave filter
         // =======================
         $('#searchUser').on('keyup', function () {
             loadLeaves(1);
@@ -1212,7 +1369,7 @@
 
 
         // =======================
-        // Hiliday description
+        // Holiday description
         // =======================
         $(document).on('click', '.view-description', function () {
             $('#commonModalTitle').text($(this).data('title'));
@@ -1221,5 +1378,189 @@
         });
 
 
+
+
+        // =======================
+        //  notifications
+        // =======================
+            const notification_index = "{{tenantRoute('notifications.index') }}";
+            const notification_count = "{{ tenantRoute('notifications.unread.count') }}";
+
+    function loadNotifications() {
+
+        $.get(notification_index, function (data) {
+
+            let html = '';
+
+            if (data.length === 0) {
+                html = '<li class="text-center p-2">No notifications</li>';
+            } else {
+               data.forEach(n => {
+
+                        let avatar = '';
+
+                        if (n.user.image) {
+                            avatar = `<img src="${n.user.image}" class="notif-avatar">`;
+                        } else {
+                            let letter = n.user.name.charAt(0).toUpperCase();
+                            avatar = `<div class="notif-avatar-circle">${letter}</div>`;
+                        }
+
+                        html += `
+                            <li class="notif-item ${n.read_at ? '' : 'bg-light'}"
+                                data-id="${n.id}">
+                                ${avatar}
+                                <div class="notif-content">
+                                    <strong>${n.title}</strong>
+                                    <p>${n.message}</p>
+                                </div>
+                            </li>
+                        `;
+                    });
+
+            }
+
+            $('#notifList').html(html);
+        });
+
+        $.get(notification_count, function (count) {
+
+            if (count > 0) {
+                $('#notifCount').removeClass('d-none').text(count);
+            } else {
+                $('#notifCount').addClass('d-none');
+            }
+        });
+    }
+
+    loadNotifications();
+    //setInterval(loadNotifications, 15000);
+    $(document).on('click', '.notif-item', function () {
+
+        let id = $(this).data('id');
+
+   $.post(`/notifications/read/${id}`, {
+        _token: "{{ csrf_token() }}"
+        }, function () {
+            loadNotifications();
+        });
+    })
+
+        // =======================
+        //  my profile
+        // =======================
+$(document).on('click', '.openProfileModal', function () {
+
+    let type = $(this).data('type');
+    let url  = "{{ tenantRoute('employee.my-profile.update') }}";
+
+    $('#globalModal').modal('show');
+    $('#modalTitle').text(type.replace('_',' ').toUpperCase());
+    $('#modalBody').html('Loading...');
+
+    $.get(`my-profile/form/${type}`, function (html) {
+        $('#modalBody').html(html);
+    });
+
+    $("#universalForm").attr("action", url);
+});
+
+
+
+        // =======================
+        //  MY PROFILE IMAGE
+        // =======================
+$('#profileImage').on('change', function () {
+
+    let formData = new FormData();
+    formData.append('profile', this.files[0]);
+    formData.append('_token', '{{ csrf_token() }}');
+    let url ="{{ tenantRoute('employee.profile.update.image') }}";
+    $.ajax({
+        url: url,
+        type: "POST",
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function (res) {
+            $('#profileImageWrapper').html(`
+                <img src="${res.image}" class="rounded-circle mb-2" width="120" height="120">
+            `);
+        }
+    });
+});
+
+
+        // ====================================
+        // ADDRESS SAME PARAMANENT ADDRESS
+        // ==================================
+$(document).on('change', '#sameAddress', function () {
+
+    if ($(this).is(':checked')) {
+
+        $('input[name="permanent_city"]').val(
+            $('input[name="present_city"]').val()
+        );
+
+        $('input[name="permanent_state"]').val(
+            $('input[name="present_state"]').val()
+        );
+
+        $('input[name="permanent_country"]').val(
+            $('input[name="present_country"]').val()
+        );
+
+        $('input[name="permanent_zipcode"]').val(
+            $('input[name="present_zipcode"]').val()
+        );
+
+        $('textarea[name="permanent_address"]').val(
+            $('textarea[name="present_address"]').val()
+        );
+
+        $('input[name="permanent_landmark"]').val(
+            $('input[name="present_landmark"]').val()
+        );
+
+    } else {
+
+        $('input[name="permanent_city"]').val('');
+        $('input[name="permanent_state"]').val('');
+        $('input[name="permanent_country"]').val('');
+        $('input[name="permanent_zipcode"]').val('');
+        $('textarea[name="permanent_address"]').val('');
+        $('input[name="permanent_landmark"]').val('');
+    }
+});
+
+
+
+function initProjectSelect(context = document) {
+    $(context).find('.project-select').select2({
+        placeholder: 'Search project...',
+        allowClear: true,
+        width: '100%'   // 👈 THIS FIXES IT
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    initProjectSelect();
+});
+
+
+let wrapper = document.getElementById('projectWrapper');
+wrapper.insertAdjacentHTML('beforeend', html);
+
+// re-init plugins
+initProjectSelect(wrapper.lastElementChild);
+initSummernote(wrapper.lastElementChild);
+
+index++;
+
+
+
 </script>
+
+
+
 

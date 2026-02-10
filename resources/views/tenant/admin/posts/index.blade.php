@@ -31,7 +31,7 @@
                 $("#universalForm")[0].reset();
                 $("#modalBody").empty();
                 let fields = {
-                    project_id: "hidden",
+                    project_id: { type: "hidden", value: "{{ $project->id }}" },
                     name: "text",
                     description:'textarea',
                 };
@@ -39,7 +39,7 @@
                 $("#universalForm").attr("action", usersstore);
 
                 loadForm(fields, "Add Post");
-                $('input[name="project_id"]').val(PROJECT_ID);
+
 
                 addDocumentField('#modalBody');
                     $('#globalModal').off('shown.bs.modal').on('shown.bs.modal', function () {

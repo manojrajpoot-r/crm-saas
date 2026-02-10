@@ -7,6 +7,7 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Support\Facades\Auth;
 use App\Providers\TenantUserProvider;
 use Illuminate\Pagination\Paginator;
+
 class RouteServiceProvider extends ServiceProvider
 {
     public function boot(): void
@@ -23,6 +24,8 @@ class RouteServiceProvider extends ServiceProvider
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
         });
+
+
     }
 
 }
