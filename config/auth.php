@@ -1,4 +1,3 @@
-
 <?php
 return [
 
@@ -7,14 +6,30 @@ return [
         'passwords' => 'users',
     ],
 
-    'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
+
+
+
+'guards' => [
+    'web' => [
+        'driver' => 'session',
+        'provider' => 'tenant_users',
+    ],
+
+
+
+
+
+
+
 
         'tenant' => [
             'driver' => 'session',
+            'provider' => 'tenant_users',
+        ],
+
+        // API token auth for tenant users (Sanctum)
+        'api' => [
+            'driver' => 'sanctum',
             'provider' => 'tenant_users',
         ],
     ],
@@ -26,8 +41,8 @@ return [
         ],
 
         'tenant_users' => [
-            'driver' => 'eloquent',   // <-- Custom provider
-             'model' => App\Models\Tenant\TenantUser::class,
+            'driver' => 'eloquent',
+            'model' => App\Models\Tenant\TenantUser::class,
         ],
     ],
 

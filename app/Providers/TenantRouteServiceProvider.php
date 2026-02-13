@@ -76,5 +76,6 @@ class TenantRouteServiceProvider extends ServiceProvider
          */
         Route::middleware(['web', 'tenant'])
             ->group(base_path('routes/tenant.php'));
+
     }
 }

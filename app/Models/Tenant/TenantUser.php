@@ -3,8 +3,11 @@ namespace App\Models\Tenant;
 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Foundation\Auth\Access\Authorizable;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Notifications\Notifiable;
 class TenantUser extends Authenticatable
 {
+     use HasApiTokens, Notifiable;
     use Authorizable;
     protected $connection = 'tenant';
     protected $table = 'users';
@@ -74,5 +77,9 @@ class TenantUser extends Authenticatable
         return $this->hasMany(Leave::class, 'user_id');
     }
 
+    public function userShifts()
+    {
+        return $this->hasMany(UserShift::class);
+    }
 
 }

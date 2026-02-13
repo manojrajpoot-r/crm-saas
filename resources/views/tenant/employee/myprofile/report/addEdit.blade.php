@@ -95,16 +95,21 @@
     <button type="submit"
             name="action"
             value="draft"
+
             class="btn btn-secondary px-5">
         Save as Draft
+         <span class="spinner-border spinner-border-sm d-none" role="status"></span>
     </button>
 
     {{-- FINAL SUBMIT --}}
     <button type="submit"
             name="action"
             value="submit"
+              id="formSubmitBtn"
             class="btn btn-primary px-5">
+
         Final Submit
+          <span class="spinner-border spinner-border-sm d-none" role="status"></span>
     </button>
 
 </div>
