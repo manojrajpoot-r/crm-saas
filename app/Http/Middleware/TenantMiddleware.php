@@ -30,6 +30,7 @@ class TenantMiddleware
             ->firstOrFail();
 
         config(['database.connections.tenant.database' => $tenant->database]);
+        config(['database.default' => 'tenant']);
         DB::purge('tenant');
         DB::reconnect('tenant');
 

@@ -32,6 +32,11 @@ use App\Http\Controllers\Tenant\Admin\mytask\MyTaskController;
 use App\Http\Controllers\Tenant\Admin\notification\NotificationController;
 use App\Http\Controllers\Tenant\Employee\MyProfileController;
 use App\Http\Controllers\Tenant\Employee\report\MyReportController;
+
+
+
+use App\Http\Controllers\API\Tenant\AuthController;
+use App\Http\Controllers\API\Tenant\AttendanceController;
         // Route::get('/login', [TenantAuthController::class, 'showLoginForm'])->name('login');
 
       // Route::post('/login', [TenantAuthController::class, 'login'])->name('login.submit');

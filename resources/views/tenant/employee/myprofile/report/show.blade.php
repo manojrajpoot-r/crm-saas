@@ -23,18 +23,16 @@
     ];
 @endphp
 <p>
-        <strong>Date:</strong>
-<span class="badge bg-{{ $statusMap[$status] ?? 'secondary' }}">
-    {{ ucfirst($status) }}
-</span>
+        <strong>Status:</strong>
+        <span class="badge bg-{{ $statusMap[$status] ?? 'secondary' }}">
+            {{ ucfirst($status) }}
+        </span>
 </p>
     <hr>
-@if($report->approved_by)
-    <p><strong class="badge bg-success">Approved By:</strong> {{ $report->approvedByUser->name ?? 'Admin' }}</p>
+
+    <p><strong class="badge bg-success">Approved By:</strong> {{ $report->approvedByUser->name ?? '' }}</p>
     <p><strong class="badge bg-success">Approved At:</strong> {{ format_date_time($report->approved_at) }}</p>
-@else
-    <span class="badge bg-warning">Pending</span>
-@endif
+
 
 
     <hr>

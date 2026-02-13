@@ -19,12 +19,12 @@ public function index()
 {
     $query = Report::latest();
 
-    if (Auth::user()->master == 1) {
+    if (canAccess('view_myreports_admin_type')) {
         $query->with([
             'user',
             'projects.project'
         ]);
-    } else {
+    } elseif(canAccess('view_myreports')) {
         $query->where('user_id', Auth::id());
     }
 
@@ -59,21 +59,35 @@ public function edit($id)
     );
 }
 
-
 private function validateRequest(Request $request)
 {
     Validator::make($request->all(), [
-        'report_date' => 'required|date',
+
         'projects' => 'required|array|min:1',
-        'projects.*.project_id' => 'required|exists:projects,id',
+
         'projects.*.description' => 'required|string',
+
         'projects.*.hours' => 'nullable|numeric|min:0',
+
     ])->validate();
 }
 
+
 public function store(Request $request)
 {
-    DB::transaction(function () use ($request) {
+     try {
+        $this->validateRequest($request);
+
+
+        if($request->report_type==null)
+        {
+             return response()->json([
+            'status' => false,
+            'message' => 'Validation error',
+
+        ]);
+        }
+        DB::beginTransaction();
 
         $status = $request->action === 'submit' ? 'submitted' : 'draft';
 
@@ -104,23 +118,47 @@ public function store(Request $request)
                 class_basename(Report::class)
             );
         }
-    });
+     DB::commit();
 
-    return response()->json([
+       return response()->json([
         'status'   => true,
         'message'  => $request->action === 'submit'
                         ? 'Report submitted successfully'
                         : 'Draft saved successfully',
         'redirect' => route('tenant.employee.myreports.index')
     ]);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+
+        return response()->json([
+            'status' => false,
+            'message' => 'Validation error',
+            'errors' => $e->errors()
+        ], 422);
+
+    } catch (\Exception $e) {
+
+        DB::rollBack();
+
+        return response()->json([
+            'status' => false,
+            'message' => 'Something went wrong',
+            'error'   => $e->getMessage()
+        ], 500);
+    }
+
+
 }
 
 
 public function update(Request $request, $id)
 {
-    $id = base64_decode($id);
 
-    DB::transaction(function () use ($request, $id) {
+   try {
+        $id = base64_decode($id);
+        $this->validateRequest($request);
+
+        DB::beginTransaction();
 
         $status = $request->action === 'submit' ? 'submitted' : 'draft';
 
@@ -147,7 +185,7 @@ public function update(Request $request, $id)
                 'admin_comment' => null,
             ]);
         }
-    });
+
 
     return response()->json([
         'status'   => true,
@@ -156,6 +194,26 @@ public function update(Request $request, $id)
                         : 'Draft updated successfully',
         'redirect' => route('tenant.employee.myreports.index')
     ]);
+     } catch (\Illuminate\Validation\ValidationException $e) {
+
+        return response()->json([
+            'status' => false,
+            'message' => 'Validation error',
+            'errors' => $e->errors()
+        ], 422);
+
+    } catch (\Exception $e) {
+
+        DB::rollBack();
+
+        return response()->json([
+            'status' => false,
+            'message' => 'Something went wrong',
+            'error'   => $e->getMessage()
+        ], 500);
+    }
+
+
 }
 
 

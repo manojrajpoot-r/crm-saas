@@ -8,5 +8,7 @@ class VerifyCsrfToken extends Middleware
 {
     protected $except = [
         'tenant/login',
+        'api/*',
     ];
+
 }
